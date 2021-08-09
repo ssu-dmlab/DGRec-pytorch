@@ -145,10 +145,10 @@ class MinibatchIterator(object):
             input_x.append(x)
             input_y.append(y)
             mask_y.append(mask)
-
+            '''
             print("sessid :", sessid)
             print("timeid :", timeid)
-            '''
+            
             print("x :", x)
             print("y :", y)
             print("mask :", mask)
