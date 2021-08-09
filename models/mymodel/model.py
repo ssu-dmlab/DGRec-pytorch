@@ -61,7 +61,7 @@ class MyModel(torch.nn.Module):
 
     def forward(self, feed_dict):
 
-        #Part-1
+        #Part-1 : Individual Interest
         input = torch.LongTensor(feed_dict['input_session'][0]) #input.shape : [20]
         emb_seqs = self.item_embeeding(input) #emb_seqs.shape : [20, 50]
         for batch in range(self.batch_size-1):
@@ -82,12 +82,11 @@ class MyModel(torch.nn.Module):
         _, (hn, _) = self.lstm(packed_seqs)
         '''
 
-        output, (_, _) = self.lstm(emb_seqs)
-        print("output.shape :", output.shape)
+        output, (_, _) = self.lstm(emb_seqs) # output.shape : [1, 20, 50]
 
 
 
-        #Part-2
+        #Part-2 : Friends' Interest
         '''
         long-term
         '''
@@ -97,11 +96,9 @@ class MyModel(torch.nn.Module):
         long_input1 = torch.LongTensor(feed_dict['support_nodes_layer1'])
         long_input2 = torch.LongTensor(feed_dict['support_nodes_layer2'])
 
-        long_term1 = self.user_embedding(long_input1)
-        long_term2 = self.user_embedding(long_input2)
+        long_term1 = self.user_embedding(long_input1) # long_term1.shape : [50, 50]
+        long_term2 = self.user_embedding(long_input2) # long_term2.shape : [5, 50]
 
-        #print("long_term1.shape :", long_term1.shape)
-        #print("long_term2.shape :", long_term2.shape)
 
         long_term = [long_term2, long_term1]
 
@@ -123,8 +120,9 @@ class MyModel(torch.nn.Module):
             friend_emb_seqs1 = torch.cat((friend_emb_seqs1, friend_emb_seq1), 0)
         friend_emb_seqs1 = friend_emb_seqs1.view(self.sample1*self.sample2, 20, 50)
 
-        short_term1, (_, _) = self.lstm(friend_emb_seqs1)
-        short_term1 = short_term1[:, 0, :]
+        short_term1, (_, _) = self.lstm(friend_emb_seqs1) # short_term1.shape : [50, 20, 50]
+        short_term1 = short_term1[:, 0, :] #[50, 20, 50] -> [50, 50]
+
 
         short_input2 = torch.LongTensor(feed_dict['support_sessions_layer2'][0])  # input.shape : [20]
         friend_emb_seqs2 = self.item_embeeding(short_input2)  # emb_seqs.shape : [20, 50]
@@ -134,11 +132,9 @@ class MyModel(torch.nn.Module):
             friend_emb_seqs2 = torch.cat((friend_emb_seqs2, friend_emb_seq2), 0)
         friend_emb_seqs2 = friend_emb_seqs2.view(self.sample2, 20, 50)
 
-        short_term2, (_, _) = self.lstm(friend_emb_seqs2)
-        short_term2 = short_term2[:, 0, :]
+        short_term2, (_, _) = self.lstm(friend_emb_seqs2) # short_term2.shape : [5, 20, 50]
+        short_term2 = short_term2[:, 0, :] #[5, 20, 50] -> [5, 50]
 
-        #print("short_term1.shape :", short_term1.shape)
-        #print("short_term2.shape :", short_term2.shape)
 
         short_term = [short_term2, short_term1]
 
@@ -147,20 +143,17 @@ class MyModel(torch.nn.Module):
         '''
         long-term & short-term
         '''
-        long_short_term1 = torch.cat((long_term[1], short_term[1]), dim=1)
-        long_short_term2 = torch.cat((long_term[0], short_term[0]), dim=1)
+        long_short_term1 = torch.cat((long_term[1], short_term[1]), dim=1) # long_short_term1.shape : [50, 100]
+        long_short_term2 = torch.cat((long_term[0], short_term[0]), dim=1) # long_short_term2.shape : [5 ,100]
 
-        long_short_term1 = torch.relu(self.W1(long_short_term1))
-        long_short_term2 = torch.relu(self.W1(long_short_term2))
-
-        #print("long_short_term1.shape :", long_short_term1.shape)
-        #print("long_short_term2.shape :", long_short_term2.shape)
+        long_short_term1 = torch.relu(self.W1(long_short_term1)) # long_short_term1.shape : [50, 50]
+        long_short_term2 = torch.relu(self.W1(long_short_term2)) # long_short_term2.shape : [5 ,50]
 
         long_short_term = [long_short_term1, long_short_term2]
 
 
 
-        #Part-3
+        #Part-3 : Graph-Attention Network
         '''
         for g, idx_map, layer in zip(graphs, idx_maps, self.layers):
             feat_src = feat

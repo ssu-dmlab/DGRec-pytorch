@@ -64,8 +64,6 @@ class MyTrainer:
                                       max_length=max_length,
                                       samples_1_2=[samples_1, samples_2])
 
-        minibatch.shuffle()
-        feed_dict = minibatch.next_train_minibatch_feed_dict()
         '''
         print("input session's len :", len(feed_dict['input_session']))     #200
         print("output_session's len :", len(feed_dict['output_session']))   #200
@@ -78,21 +76,26 @@ class MyTrainer:
         print("support_lengths_layer2's len :", len(feed_dict['support_lengths_layer2']))   #1000
         '''
 
+        minibatch.shuffle() #test code
+        feed_dict = minibatch.next_train_minibatch_feed_dict() #test code
+
         model = MyModel(num_users, num_items, embedding_size, batch_size, samples_1, samples_2, num_layers=2).to(self.device)
         optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
         model.train()
         pbar = tqdm(range(epochs), position=0, leave=False, desc='epoch')
 
-        #test code
-        loss = model(feed_dict)
+        loss = model(feed_dict) #test code
 
         for epoch in pbar:
             avg_loss = 0
+            minibatch.shuffle()
             for features, labels in tqdm(data_loader, position=1, leave=False, desc='batch'):
                 # send data to a running device (GPU or CPU)
                 features = features.view(-1, self.in_dim).to(self.device)
                 labels = labels.to(self.device)
+
+                feed_dict = minibatch.next_train_minibatch_feed_dict()
 
                 optimizer.zero_grad()
 
