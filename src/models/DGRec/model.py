@@ -47,7 +47,7 @@ class GAT(nn.Module):
         rst = torch.relu(self.fc(rst)) # obtain representation of each nodes
         return rst
 
-class MyModel(torch.nn.Module):
+class DGRec(torch.nn.Module):
     def __init__(
         self,
         num_users,
@@ -62,7 +62,7 @@ class MyModel(torch.nn.Module):
         residual=True,
         **kwargs,
     ):
-        super(MyModel, self).__init__()
+        super(DGRec, self).__init__()
         self.batch_size = batch_size
         self.sample1 =sample1
         self.sample2 = sample2

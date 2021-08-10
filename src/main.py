@@ -8,8 +8,8 @@ from pathlib import Path
 
 from utils import set_random_seed
 from data import MyDataset
-from models.mymodel.train import MyTrainer
-from models.mymodel.eval import MyEvaluator
+from models.DGRec.train import MyTrainer
+from models.DGRec.eval import MyEvaluator
 from utils import log_param
 from loguru import logger
 
@@ -26,7 +26,7 @@ def run_mymodel(device, data, hyper_param):
     return accuracy
 
 
-def main(model='mymodel',
+def main(model='DGRec',
          seed = 123,
          training=True,
          global_only = False,
@@ -81,7 +81,7 @@ def main(model='mymodel',
     log_param(param)
 
     # Step 1. Load datasets
-    data_path = '/Users/kimtaesu/PycharmProjects/DGRec_totorch/datasets'
+    data_path = '/Users/kimtaesu/PycharmProjects/DGRec-pytorch/datasets'
     #logger.info("path of data is:{}".format(data_path))
     MyData = MyDataset(data_path)
     data = MyData.load_data()
@@ -122,7 +122,7 @@ def main(model='mymodel',
     hyper_param['val_every'] = val_every
     log_param(hyper_param)
 
-    if model == 'mymodel':
+    if model == 'DGRec':
         accuracy = run_mymodel(device=device,
                                data=data,
                                hyper_param=hyper_param)

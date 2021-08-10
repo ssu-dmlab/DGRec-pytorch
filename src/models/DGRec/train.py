@@ -2,11 +2,9 @@
 # -*- coding: utf-8 -*-
 
 import torch
-from models.mymodel.model import MyModel
-from models.mymodel.batch.minibatch import MinibatchIterator
+from models.DGRec.model import DGRec
+from models.DGRec.batch.minibatch import MinibatchIterator
 from tqdm import tqdm
-from utils import log_param
-from loguru import logger
 
 
 class MyTrainer:
@@ -76,25 +74,16 @@ class MyTrainer:
         print("support_lengths_layer2's len :", len(feed_dict['support_lengths_layer2']))   #1000
         '''
 
-        minibatch.shuffle() #test code
-        feed_dict = minibatch.next_train_minibatch_feed_dict() #test code
-
-        model = MyModel(num_users, num_items, embedding_size, batch_size, samples_1, samples_2, num_layers=2).to(self.device)
+        model = DGRec(num_users, num_items, embedding_size, batch_size, samples_1, samples_2, num_layers=2).to(self.device)
         optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
         model.train()
         pbar = tqdm(range(epochs), position=0, leave=False, desc='epoch')
 
-        loss = model(feed_dict) #test code
-
         for epoch in pbar:
-            avg_loss = 0
+            #avg_loss = 0
             minibatch.shuffle()
-            for features, labels in tqdm(data_loader, position=1, leave=False, desc='batch'):
-                # send data to a running device (GPU or CPU)
-                features = features.view(-1, self.in_dim).to(self.device)
-                labels = labels.to(self.device)
-
+            for _ in tqdm(range(1), position=1, leave=False, desc='batch'):
                 feed_dict = minibatch.next_train_minibatch_feed_dict()
 
                 optimizer.zero_grad()
@@ -104,7 +93,7 @@ class MyTrainer:
                 loss.backward()
                 optimizer.step()
 
-                avg_loss += loss / total_batches
+                #avg_loss += loss / total_batches
 
             pbar.write('Epoch {:02}: {:.4} training loss'.format(epoch, loss.item()))
             pbar.update()

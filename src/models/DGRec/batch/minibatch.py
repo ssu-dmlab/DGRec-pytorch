@@ -3,7 +3,7 @@ import pandas as pd
 import sys
 sys.path.append("../..") # Adds higher directory to python modules path.
 
-from models.mymodel.batch.neigh_samplers import UniformNeighborSampler
+from models.DGRec.batch.neigh_samplers import UniformNeighborSampler
 
 np.random.seed(123)
 
