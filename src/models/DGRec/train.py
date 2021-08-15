@@ -11,7 +11,7 @@ class MyTrainer:
     def __init__(self, device):
         self.device = device
 
-    def train_with_hyper_param(self, data, hyper_param):
+    def train_with_hyper_param(self, data, hyper_param, graph):
 
         adj_info = data[0]
         latest_per_user_by_time = data[1]
@@ -42,10 +42,6 @@ class MyTrainer:
         print_every = hyper_param['print_every']
         val_every = hyper_param['val_every']
 
-        num_items = len(item_id_map) + 1
-        num_users = len(user_id_map)
-        #print("num_items :", num_items)
-        #print("num_users :", num_users)
 
         '''
         data_loader = torch.utils.data.DataLoader(dataset=train_data,
@@ -53,6 +49,7 @@ class MyTrainer:
                                                   shuffle=True,
                                                   drop_last=True)
         '''
+
         minibatch = MinibatchIterator(adj_info,
                                       latest_per_user_by_time,
                                       [train_df, valid_df, test_df],
@@ -80,15 +77,18 @@ class MyTrainer:
         model.train()
         pbar = tqdm(range(epochs), position=0, leave=False, desc='epoch')
 
+        batch_len = minibatch.train_batch_len()
+        batch_len = int(batch_len)
+
         for epoch in pbar:
             #avg_loss = 0
             minibatch.shuffle()
-            for _ in tqdm(range(1), position=1, leave=False, desc='batch'):
+            for batch in tqdm(range(batch_len), position=1, leave=False, desc='batch'):
                 feed_dict = minibatch.next_train_minibatch_feed_dict()
 
                 optimizer.zero_grad()
 
-                loss = model(feed_dict)
+                loss = model(feed_dict, feed_dict['output_session'], graph)
 
                 loss.backward()
                 optimizer.step()

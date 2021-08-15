@@ -105,6 +105,7 @@ class DGRec(nn.Module):
         # the node features of the current user are only the short-term interests
         # the node features of neighbors are the combination of short-term and long-term interests
         feat[cur_sidx] = cur_u_short_term
+
         for g, idx_map, layer in zip(graphs, idx_maps, self.layers):
             feat_src = feat
             feat_dst = feat[idx_map]

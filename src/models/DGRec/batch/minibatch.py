@@ -28,7 +28,7 @@ class MinibatchIterator(object):
         self.placeholders={
             'input_x': 'input_session',
             'input_y': 'output_session',
-            'mask_y': 'mask_x',
+            'mask_y': 'mask_y',
             'support_nodes_layer1': 'support_nodes_layer1',
             'support_nodes_layer2': 'support_nodes_layer2',
             'support_sessions_layer1': 'support_sessions_layer1',
@@ -64,12 +64,9 @@ class MinibatchIterator(object):
             Find out when each user is 'visible' to her friends, i.e., every user's first click/watching time.
         '''
         visible_time = []
-        i=0
         for l in self.latest_sessions:
-            timeid = max(loc for loc, val in enumerate(l) if val == 'NULL') + 1
+            timeid = max(loc for loc, val in enumerate(l) if val == 'NULL' and loc < len(l)) + 1
             visible_time.append(timeid)
-            i+=1
-            #print(timeid, len(l), i)
             assert timeid > 0 and timeid < len(l), 'Wrong when create visible time {}'.format(timeid)
         return visible_time
 
@@ -319,6 +316,9 @@ class MinibatchIterator(object):
         if end:
             self.batch_num_val = 0
         return end
+
+    def train_batch_len(self):
+        return (len(self.train_session_ids) - self.batch_size) / self.batch_size
 
     def shuffle(self):
         '''

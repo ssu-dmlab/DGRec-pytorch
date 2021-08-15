@@ -4,7 +4,9 @@
 import random
 import numpy as np
 import torch
+import dgl
 from loguru import logger
+from data import MyDataset
 
 
 def set_random_seed(seed, device):
@@ -31,3 +33,19 @@ def log_param(param):
                 logger.info('{:20}:{:>50}'.format(in_key, '{}'.format(in_value)))
         else:
             logger.info('{:20}:{:>50}'.format(key, '{}'.format(value)))
+
+def set_graph(adj):
+    data = (torch.LongTensor(adj['Follower']), torch.LongTensor(adj['Follower']))
+    g = dgl.graph(data)
+
+    g.ndata['x'] = torch.ones(g.num_nodes(), 32)
+    g.edata['weights'] = torch.rand(g.num_edges())
+
+    return g
+
+if __name__ == "__main__":
+    data_path = '/Users/kimtaesu/PycharmProjects/DGRec-pytorch/datasets'
+    #logger.info("path of data is:{}".format(data_path))
+    MyData = MyDataset(data_path)
+    data = MyData.load_data()
+    print(set_graph(data[0]))

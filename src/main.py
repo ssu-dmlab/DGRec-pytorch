@@ -11,19 +11,22 @@ from data import MyDataset
 from models.DGRec.train import MyTrainer
 from models.DGRec.eval import MyEvaluator
 from utils import log_param
+from utils import set_graph
 from loguru import logger
 
 
 def run_mymodel(device, data, hyper_param):
+    g = set_graph(data[0])
+
     trainer = MyTrainer(device=device)
 
     model = trainer.train_with_hyper_param(data=data,
-                                           hyper_param=hyper_param)
+                                           hyper_param=hyper_param, graph=g)
 
     evaluator = MyEvaluator(device=device)
-    accuracy = evaluator.evaluate(model, test_data)
+    accuracy, real_accuracy = evaluator.evaluate(model, data, hyper_param, g)
 
-    return accuracy
+    return accuracy, real_accuracy
 
 
 def main(model='DGRec',
@@ -31,10 +34,10 @@ def main(model='DGRec',
          training=True,
          global_only = False,
          local_only = False,
-         epochs = 5,
+         epochs = 20,
          aggregator_type = 'attn',
          act = 'relu',
-         batch_size = 1,
+         batch_size = 200,
          max_degree = 50,
          num_users = -1,
          num_items = 100,
@@ -81,7 +84,7 @@ def main(model='DGRec',
     log_param(param)
 
     # Step 1. Load datasets
-    data_path = '/Users/kimtaesu/PycharmProjects/DGRec-pytorch/datasets'
+    data_path = '/Users/kimtaesu/PycharmProjects/DGRec-pytorch/datasets/musicdata/'
     #logger.info("path of data is:{}".format(data_path))
     MyData = MyDataset(data_path)
     data = MyData.load_data()
@@ -99,6 +102,9 @@ def main(model='DGRec',
     # Step 2. Run (train and evaluate) the specified model
 
     logger.info("Training the model has begun with the following hyperparameters:")
+    num_items = len(item_id_map)
+    num_users = len(user_id_map)
+
     hyper_param = dict()
     hyper_param['epochs'] = epochs
     hyper_param['aggregator_type'] = aggregator_type
@@ -122,8 +128,9 @@ def main(model='DGRec',
     hyper_param['val_every'] = val_every
     log_param(hyper_param)
 
+
     if model == 'DGRec':
-        accuracy = run_mymodel(device=device,
+        accuracy, real_accuracy = run_mymodel(device=device,
                                data=data,
                                hyper_param=hyper_param)
 
@@ -135,7 +142,7 @@ def main(model='DGRec',
         return
 
     # Step 3. Report and save the final results
-    logger.info("The model has been trained. The test accuracy is {:.4}.".format(accuracy))
+    logger.info("The model has been trained. The test accuracy is {:.4} and real_accuracy is {:.4}.".format(accuracy, real_accuracy))
 
 
 if __name__ == "__main__":

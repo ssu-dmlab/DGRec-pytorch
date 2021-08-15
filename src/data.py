@@ -44,4 +44,9 @@ class MyDataset(Dataset):
         train = pd.read_csv(self.data_path + '/train.tsv', sep='\t', dtype={0: np.int32, 1: np.int32, 3: np.float32})
         valid = pd.read_csv(self.data_path + '/valid.tsv', sep='\t', dtype={0: np.int32, 1: np.int32, 3: np.float32})
         test = pd.read_csv(self.data_path + '/test.tsv', sep='\t', dtype={0: np.int32, 1: np.int32, 3: np.float32})
+
+        train['ItemId'] -= 1
+        valid['ItemId'] -= 1
+        test['ItemId'] -= 1
+
         return [adj, latest_sessions, user_id_map, item_id_map, train, valid, test]
