@@ -31,9 +31,12 @@ Tensorflow로 구현된 'Session-Based Social Recommendation via Dynamic Graph A
 `DGRec-pytorch`는 다음과 같은 구조로 이루어져있다. `DGRec-pytorch` 코드의 세부 내용을 분석할 때는 `main.py`를 시작점으로 해서 살펴보면 된다. 
 
 ```shell
-├── README.md
+├── READM.md
 ├── datasets                        # datasets을 저장하는 폴더
-│   └── Douban                       
+│   ├── Douban                      
+│   ├── bookdata                    # bookdata를 저장하는 폴더
+│   ├── moviedata                   # moviedata를 저장하는 폴더
+│   └── musicdata                   # musicdata를 저장하는 폴더
 └── src                             # source codes를 저장하는 폴더
     ├── data.py                     # datasets (DataSet, DataLoader) 관련 작업을 처리하는 script
     ├── experiments                 # 실험 scripts를 저장하는 폴더
@@ -42,7 +45,11 @@ Tensorflow로 구현된 'Session-Based Social Recommendation via Dynamic Graph A
     ├── main.py                     # 사용자 입력을 처리하는 script
     ├── models                      # model의 코드를 저장하는 폴더 (여러 모델을 구현한다고 가정)
     │    ├── __init__.py
-    │    └── DGRec                # 'DGRec'의 코드를 저장하는 폴더
+    │    └── DGRec                  # 'DGRec'의 코드를 저장하는 폴더
+    │        ├── batch              # minibatch 구현에 대한 코드를 저장하는 폴더
+    │        │    ├── __init__.py
+    │        │    ├── minibatch.py
+    │        │    └── neign_samplers.py
     │        ├── __init__.py
     │        ├── model.py           # DGRec 구현 담당 (주로 forward 함수 구현)
     │        ├── train.py           # data, hyper_param을 받아 DGRec 훈련 담당 (주로 gradient descent & backprop)
