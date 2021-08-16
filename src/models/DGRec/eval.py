@@ -23,7 +23,6 @@ class MyEvaluator:
             test_df = data[6]
 
             epochs = hyper_param['epochs']
-            aggregator_type = hyper_param['aggregator_type']
             act = hyper_param['act']
             batch_size = hyper_param['batch_size']
             max_degree = hyper_param['max_degree']
