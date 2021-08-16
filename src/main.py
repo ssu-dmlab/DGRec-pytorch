@@ -11,20 +11,17 @@ from data import MyDataset
 from models.DGRec.train import MyTrainer
 from models.DGRec.eval import MyEvaluator
 from utils import log_param
-from utils import set_graph
 from loguru import logger
 
 
 def run_mymodel(device, data, hyper_param):
-    g = set_graph(data[0])
-
     trainer = MyTrainer(device=device)
 
     model = trainer.train_with_hyper_param(data=data,
-                                           hyper_param=hyper_param, graph=g)
+                                           hyper_param=hyper_param)
 
     evaluator = MyEvaluator(device=device)
-    accuracy, real_accuracy = evaluator.evaluate(model, data, hyper_param, g)
+    accuracy, real_accuracy = evaluator.evaluate(model, data, hyper_param)
 
     return accuracy, real_accuracy
 
@@ -34,18 +31,18 @@ def main(model='DGRec',
          training=True,
          global_only = False,
          local_only = False,
-         epochs = 20,
+         epochs = 10,
          aggregator_type = 'attn',
          act = 'relu',
-         batch_size = 200,
+         batch_size = 50,
          max_degree = 50,
          num_users = -1,
          num_items = 100,
          concat = False,
          learning_rate = 0.001,
          hidden_size = 100,
-         embedding_size = 50,
-         emb_user = 50,
+         embedding_size = 100,
+         emb_user = 100,
          max_length = 20,
          samples_1 = 10,
          samples_2 = 5,
@@ -78,7 +75,6 @@ def main(model='DGRec',
     param['global_only'] = global_only
     param['local_only'] = local_only
     param['concat'] = concat
-    param['model_size'] = model_size
     param['ckpt_dir'] = ckpt_dir
     param['device'] = device
     log_param(param)
@@ -122,6 +118,7 @@ def main(model='DGRec',
     hyper_param['samples_2'] = samples_2
     hyper_param['dim1'] = dim1
     hyper_param['dim2'] = dim2
+    hyper_param['model_size'] = model_size
     hyper_param['dropout'] = dropout
     hyper_param['weight_decay'] = weight_decay
     hyper_param['print_every'] = print_every

@@ -12,7 +12,7 @@ class MyEvaluator:
     def __init__(self, device):
         self.device = device
 
-    def evaluate(self, model, data, hyper_param, graph):
+    def evaluate(self, model, data, hyper_param):
         with torch.no_grad():
             adj_info = data[0]
             latest_per_user_by_time = data[1]
@@ -60,10 +60,7 @@ class MyEvaluator:
 
             labels = torch.tensor(np.array(feed_dict['output_session']), dtype=torch.long)
 
-            predictions = model.predict(feed_dict, graph)
-
-            print(labels)
-            print(predictions)
+            predictions = model.predict(feed_dict)
 
             corrects = predictions == labels
             accuracy = corrects.float().mean()

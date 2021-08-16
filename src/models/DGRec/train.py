@@ -11,7 +11,7 @@ class MyTrainer:
     def __init__(self, device):
         self.device = device
 
-    def train_with_hyper_param(self, data, hyper_param, graph):
+    def train_with_hyper_param(self, data, hyper_param):
 
         adj_info = data[0]
         latest_per_user_by_time = data[1]
@@ -37,6 +37,7 @@ class MyTrainer:
         samples_2 = hyper_param['samples_2']
         dim1 = hyper_param['dim1']
         dim2 = hyper_param['dim2']
+        model_size = hyper_param['model_size']
         dropout = hyper_param['dropout']
         weight_decay = hyper_param['weight_decay']
         print_every = hyper_param['print_every']
@@ -71,7 +72,7 @@ class MyTrainer:
         print("support_lengths_layer2's len :", len(feed_dict['support_lengths_layer2']))   #1000
         '''
 
-        model = DGRec(num_users, num_items, embedding_size, batch_size, samples_1, samples_2, num_layers=2).to(self.device)
+        model = DGRec(hyper_param, num_layers=2).to(self.device)
         optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
         model.train()
@@ -88,7 +89,7 @@ class MyTrainer:
 
                 optimizer.zero_grad()
 
-                loss = model(feed_dict, feed_dict['output_session'], graph)
+                loss = model(feed_dict, feed_dict['output_session'])
 
                 loss.backward()
                 optimizer.step()
