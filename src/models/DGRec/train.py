@@ -3,6 +3,7 @@
 
 import torch
 from models.DGRec.model import DGRec
+from models.DGRec.eval import MyEvaluator
 from models.DGRec.batch.minibatch import MinibatchIterator
 from tqdm import tqdm
 
@@ -11,16 +12,8 @@ class MyTrainer:
     def __init__(self, device):
         self.device = device
 
-    def train_with_hyper_param(self, data, hyper_param):
-
-        adj_info = data[0]
-        latest_per_user_by_time = data[1]
-        user_id_map = data[2]
-        item_id_map = data[3]
-        train_df = data[4]
-        valid_df = data[5]
-        test_df = data[6]
-
+    def train_with_hyper_param(self, minibatch, hyper_param):
+        device = hyper_param['device']
         epochs = hyper_param['epochs']
         act = hyper_param['act']
         batch_size = hyper_param['batch_size']
@@ -42,16 +35,10 @@ class MyTrainer:
         print_every = hyper_param['print_every']
         val_every = hyper_param['val_every']
 
-        minibatch = MinibatchIterator(adj_info,
-                                      latest_per_user_by_time,
-                                      [train_df, valid_df, test_df],
-                                      batch_size=batch_size,
-                                      max_degree=max_degree,
-                                      num_nodes=len(user_id_map),
-                                      max_length=max_length,
-                                      samples_1_2=[samples_1, samples_2])
+
 
         model = DGRec(hyper_param, num_layers=2).to(self.device)
+        evaluator = MyEvaluator(device=device)
         optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
         model.train()
@@ -62,7 +49,8 @@ class MyTrainer:
 
         for epoch in pbar:
             minibatch.shuffle()
-            for batch in tqdm(range(10), position=1, leave=False, desc='batch'):
+            for batch in tqdm(range(2), position=1, leave=False, desc='batch'):
+                model.train()
                 feed_dict = minibatch.next_train_minibatch_feed_dict()
 
                 optimizer.zero_grad()
@@ -71,7 +59,12 @@ class MyTrainer:
 
                 loss.backward()
                 optimizer.step()
+                '''
+                if (batch % 10) == 0:
+                    accuracy, real_accuracy, recall_k = evaluator.evaluate(model, minibatch, hyper_param, 'val')
 
+                    #pbar.write('Epoch {:02}: {:.4}  {:.4}\n'.format(epoch, accuracy, recall_k))
+                '''
             pbar.write('Epoch {:02}: {:.4} training loss'.format(epoch, loss.item()))
             pbar.update()
 

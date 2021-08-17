@@ -6,21 +6,14 @@ import numpy as np
 from models.DGRec.model import DGRec
 from models.DGRec.batch.minibatch import MinibatchIterator
 from tqdm import tqdm
-
+from torch.nn import functional as F
 
 class MyEvaluator:
     def __init__(self, device):
         self.device = device
 
-    def evaluate(self, model, data, hyper_param):
+    def evaluate(self, model, minibatch, hyper_param, mode='test'):
         with torch.no_grad():
-            adj_info = data[0]
-            latest_per_user_by_time = data[1]
-            user_id_map = data[2]
-            item_id_map = data[3]
-            train_df = data[4]
-            valid_df = data[5]
-            test_df = data[6]
 
             epochs = hyper_param['epochs']
             act = hyper_param['act']
@@ -42,29 +35,27 @@ class MyEvaluator:
             print_every = hyper_param['print_every']
             val_every = hyper_param['val_every']
 
-
-            minibatch = MinibatchIterator(adj_info,
-                                          latest_per_user_by_time,
-                                          [train_df, valid_df, test_df],
-                                          batch_size=batch_size,
-                                          max_degree=max_degree,
-                                          num_nodes=len(user_id_map),
-                                          max_length=max_length,
-                                          samples_1_2=[samples_1, samples_2],
-                                          training=False)
-
             model.eval()
 
-            feed_dict = minibatch.next_val_minibatch_feed_dict("test")
+            minibatch.shuffle()
+            feed_dict = minibatch.next_val_minibatch_feed_dict(mode)
 
-            labels = torch.tensor(np.array(feed_dict['output_session']), dtype=torch.long)
+            # evaluation
+            labels = torch.tensor(np.array(feed_dict['output_session']), dtype=torch.long) # labels : [batch, max_length]
+            predictions = model.predict(feed_dict) # predictions : [batch, max_length, item_embedding]
 
-            predictions = model.predict(feed_dict)
+            _, top_k_index = torch.topk(predictions, k=20, dim=2) # top_k_index : [batch, max_length, k]
 
-            corrects = predictions == labels
-            accuracy = corrects.float().mean()
+            labels = torch.unsqueeze(labels, dim=2) # labels : [batch, max_length, 1]
+            corrects = (top_k_index == labels) * (labels != 0) # corrects : [batch, max_length, k]
+            recall_corrects = torch.sum(corrects, dim=2).to(dtype=torch.float) # corrects : [batch, max_length]
 
-            real_corrects = ((predictions == labels) * (labels != 0))
-            real_accuracy = real_corrects.float().mean()
+            mask_sum = (labels != 0).sum(dim=1) # mask_sum : [batch, 1]
+            mask_sum = torch.squeeze(mask_sum, dim=1) # mask_sum : [batch]
 
-        return accuracy.item(), real_accuracy.item()
+            recall_k = (recall_corrects.sum(dim=1) / mask_sum).sum() / batch_size
+
+            acc_corrects = (predictions == labels) * (labels != 0)
+            accuracy = acc_corrects.float().mean()
+
+        return accuracy.item(), recall_k.item()

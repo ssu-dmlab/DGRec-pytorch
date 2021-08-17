@@ -10,28 +10,52 @@ from utils import set_random_seed
 from data import MyDataset
 from models.DGRec.train import MyTrainer
 from models.DGRec.eval import MyEvaluator
+from models.DGRec.batch.minibatch import MinibatchIterator
 from utils import log_param
 from loguru import logger
 
 
 def run_mymodel(device, data, hyper_param):
+    adj_info = data[0]
+    latest_per_user_by_time = data[1]
+    user_id_map = data[2]
+    item_id_map = data[3]
+    train_df = data[4]
+    valid_df = data[5]
+    test_df = data[6]
+
+    batch_size = hyper_param['batch_size']
+    max_degree = hyper_param['max_degree']
+    max_length = hyper_param['max_length']
+    samples_1 = hyper_param['samples_1']
+    samples_2 = hyper_param['samples_2']
+
+    minibatch = MinibatchIterator(adj_info,
+                                  latest_per_user_by_time,
+                                  [train_df, valid_df, test_df],
+                                  batch_size=batch_size,
+                                  max_degree=max_degree,
+                                  num_nodes=len(user_id_map),
+                                  max_length=max_length,
+                                  samples_1_2=[samples_1, samples_2])
+
     trainer = MyTrainer(device=device)
 
-    model = trainer.train_with_hyper_param(data=data,
+    model = trainer.train_with_hyper_param(minibatch=minibatch,
                                            hyper_param=hyper_param)
 
     evaluator = MyEvaluator(device=device)
-    accuracy, real_accuracy = evaluator.evaluate(model, data, hyper_param)
+    accuracy, recall_k = evaluator.evaluate(model, minibatch, hyper_param)
 
-    return accuracy, real_accuracy
+    return accuracy, recall_k
 
 
 def main(model='DGRec',
          seed = 123,
          training=True,
-         epochs = 10,
+         epochs = 2,
          act = 'relu',
-         batch_size = 10,
+         batch_size = 2,
          max_degree = 50,
          concat = False,
          learning_rate = 0.001,
@@ -69,7 +93,6 @@ def main(model='DGRec',
     param['training'] = training
     param['concat'] = concat
     param['ckpt_dir'] = ckpt_dir
-    param['device'] = device
     log_param(param)
 
     # Step 1. Load datasets
@@ -91,10 +114,11 @@ def main(model='DGRec',
     # Step 2. Run (train and evaluate) the specified model
 
     logger.info("Training the model has begun with the following hyperparameters:")
-    num_items = len(item_id_map)
+    num_items = len(item_id_map) + 1
     num_users = len(user_id_map)
 
     hyper_param = dict()
+    hyper_param['device'] = device
     hyper_param['epochs'] = epochs
     hyper_param['act'] = act
     hyper_param['batch_size'] = batch_size
@@ -119,7 +143,7 @@ def main(model='DGRec',
 
 
     if model == 'DGRec':
-        accuracy, real_accuracy = run_mymodel(device=device,
+        accuracy, recall_k = run_mymodel(device=device,
                                data=data,
                                hyper_param=hyper_param)
 
@@ -131,7 +155,7 @@ def main(model='DGRec',
         return
 
     # Step 3. Report and save the final results
-    logger.info("The model has been trained. The test accuracy is {:.4} and real_accuracy is {:.4}.".format(accuracy, real_accuracy))
+    logger.info("The model has been trained. The test accuracy is {:.4} and recall_k is {:.4}.".format(accuracy, recall_k))
 
 
 if __name__ == "__main__":

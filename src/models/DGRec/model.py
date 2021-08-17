@@ -110,9 +110,9 @@ class DGRec(torch.nn.Module):
             emb_seq = self.item_embeeding(input)
             emb_seq = torch.unsqueeze(emb_seq, 0)
             emb_seqs = torch.cat((emb_seqs, emb_seq), 0)
-        # emb_seqs = emb_seqs.view(self.batch_size, self.max_length, self.embedding_size)
 
         hu, (_, _) = self.lstm(emb_seqs)  # output.shape : [batch_size, max_length, embedding_dim]
+
 
         # Part-2 : Friends' Interest
         # long-term
@@ -127,12 +127,12 @@ class DGRec(torch.nn.Module):
         # short-term
         short_input1 = torch.LongTensor(feed_dict['support_sessions_layer1'][0])  # input.shape : [max_length]
         friend_emb_seqs1 = self.item_embeeding(short_input1)  # emb_seqs.shape : [max_length, embedding_dim]
+        friend_emb_seqs1 = torch.unsqueeze(friend_emb_seqs1, 0)
         for batch in range(self.batch_size * self.samples_1 * self.samples_2 - 1):
             short_input1 = torch.LongTensor(feed_dict['support_sessions_layer1'][batch + 1])
             friend_emb_seq1 = self.item_embeeding(short_input1)
+            friend_emb_seq1 = torch.unsqueeze(friend_emb_seq1, 0)
             friend_emb_seqs1 = torch.cat((friend_emb_seqs1, friend_emb_seq1), 0)
-        friend_emb_seqs1 = friend_emb_seqs1.view(self.batch_size * self.samples_1 * self.samples_2, self.max_length,
-                                                 self.embedding_size)
 
         short_term1, (_, _) = self.lstm(friend_emb_seqs1)
         # short_term1.shape : [batch_size * sample1 * sample2, max_length, embedding_dim]
@@ -141,11 +141,12 @@ class DGRec(torch.nn.Module):
 
         short_input2 = torch.LongTensor(feed_dict['support_sessions_layer2'][0])  # input.shape : [max_length]
         friend_emb_seqs2 = self.item_embeeding(short_input2)  # emb_seqs.shape : [max_length, embedding_dim]
+        friend_emb_seqs2 = torch.unsqueeze(friend_emb_seqs2, 0)
         for batch in range(self.batch_size * self.samples_2 - 1):
             short_input2 = torch.LongTensor(feed_dict['support_sessions_layer2'][batch + 1])
             friend_emb_seq2 = self.item_embeeding(short_input2)
+            friend_emb_seq2 = torch.unsqueeze(friend_emb_seq2, 0)
             friend_emb_seqs2 = torch.cat((friend_emb_seqs2, friend_emb_seq2), 0)
-        friend_emb_seqs2 = friend_emb_seqs2.view(self.batch_size * self.samples_2, self.max_length, self.embedding_size)
 
         short_term2, (_, _) = self.lstm(friend_emb_seqs2)
         # short_term2.shape : [batch_size * sample2, max_length, embedding_dim]
@@ -179,7 +180,7 @@ class DGRec(torch.nn.Module):
                 hidden = [hu_, long_short_term[0], long_short_term[1]]
                 for hop in range(self.num_layers):
                     neigh_dims = [self.batch_size * support_sizes[hop],
-                                  num_samples[len(num_samples) - hop - 1],
+                                  num_samples[self.num_layers - hop - 1],
                                   100]
                     h = layer([hidden[hop],
                                torch.reshape(hidden[hop + 1], neigh_dims)])
@@ -197,6 +198,8 @@ class DGRec(torch.nn.Module):
         logits = torch.swapaxes(logits, 0, 1)
         logits *= torch.unsqueeze(mask, 2)
 
+
+        # return : [batch, max_length, item_embedding]
         return logits
 
     def forward(self, feed_dict, labels):
@@ -212,4 +215,4 @@ class DGRec(torch.nn.Module):
 
     def predict(self, feed_dict):
         logits = self.score(feed_dict)
-        return torch.argmax(logits, dim=2)
+        return logits
