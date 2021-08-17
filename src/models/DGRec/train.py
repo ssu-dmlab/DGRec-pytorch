@@ -49,7 +49,7 @@ class MyTrainer:
 
         for epoch in pbar:
             minibatch.shuffle()
-            for batch in tqdm(range(2), position=1, leave=False, desc='batch'):
+            for batch in tqdm(range(batch_len), position=1, leave=False, desc='batch'):
                 model.train()
                 feed_dict = minibatch.next_train_minibatch_feed_dict()
 
