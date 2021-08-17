@@ -6,6 +6,7 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 
+from loguru import logger
 from utils import glorot, zeros
 
 
@@ -100,24 +101,24 @@ class DGRec(torch.nn.Module):
 
         self.W2 = nn.Linear(input_dim + self.embedding_size, self.embedding_size, bias=False)
 
-    def score(self, feed_dict):
-        # Part-1 : Individual Interest
-        input = torch.LongTensor(feed_dict['input_session'][0])  # input.shape : [max_length]
+    def individual_interest(self, input_session):
+        input = torch.LongTensor(input_session[0])  # input.shape : [max_length]
         emb_seqs = self.item_embeeding(input)  # emb_seqs.shape : [max_length, embedding_dim]
         emb_seqs = torch.unsqueeze(emb_seqs, 0)
         for batch in range(self.batch_size - 1):
-            input = torch.LongTensor(feed_dict['input_session'][batch + 1])
+            input = torch.LongTensor(input_session[batch + 1])
             emb_seq = self.item_embeeding(input)
             emb_seq = torch.unsqueeze(emb_seq, 0)
             emb_seqs = torch.cat((emb_seqs, emb_seq), 0)
 
         hu, (_, _) = self.lstm(emb_seqs)  # output.shape : [batch_size, max_length, embedding_dim]
 
+        return hu
 
-        # Part-2 : Friends' Interest
+    def friends_interest(self, support_nodes_layer1, support_nodes_layer2, support_sessions_layer1, support_sessions_layer2):
         # long-term
-        long_input1 = torch.LongTensor(feed_dict['support_nodes_layer1'])
-        long_input2 = torch.LongTensor(feed_dict['support_nodes_layer2'])
+        long_input1 = torch.LongTensor(support_nodes_layer1)
+        long_input2 = torch.LongTensor(support_nodes_layer2)
 
         long_term1 = self.user_embedding(long_input1)  # long_term1.shape : [sample1 * sample2, embedding_dim]
         long_term2 = self.user_embedding(long_input2)  # long_term2.shape : [sample2, embedding_dim]
@@ -125,31 +126,19 @@ class DGRec(torch.nn.Module):
         long_term = [long_term2, long_term1]
 
         # short-term
-        short_input1 = torch.LongTensor(feed_dict['support_sessions_layer1'][0])  # input.shape : [max_length]
-        friend_emb_seqs1 = self.item_embeeding(short_input1)  # emb_seqs.shape : [max_length, embedding_dim]
-        friend_emb_seqs1 = torch.unsqueeze(friend_emb_seqs1, 0)
-        for batch in range(self.batch_size * self.samples_1 * self.samples_2 - 1):
-            short_input1 = torch.LongTensor(feed_dict['support_sessions_layer1'][batch + 1])
-            friend_emb_seq1 = self.item_embeeding(short_input1)
-            friend_emb_seq1 = torch.unsqueeze(friend_emb_seq1, 0)
-            friend_emb_seqs1 = torch.cat((friend_emb_seqs1, friend_emb_seq1), 0)
+        short1_arange = torch.arange(self.batch_size * self.samples_1 * self.samples_2, dtype=torch.long)
+        short_input1 = torch.LongTensor(support_sessions_layer1)[short1_arange]
+        friend_emb_seqs1 = self.item_embeeding(short_input1)
 
-        short_term1, (_, _) = self.lstm(friend_emb_seqs1)
-        # short_term1.shape : [batch_size * sample1 * sample2, max_length, embedding_dim]
+        short_term1, (_, _) = self.lstm(friend_emb_seqs1) # short_term1.shape : [batch_size * sample1 * sample2, max_length, embedding_dim]
 
         short_term1 = short_term1[:, 0, :]  # [, max_length, ] -> [, ]
 
-        short_input2 = torch.LongTensor(feed_dict['support_sessions_layer2'][0])  # input.shape : [max_length]
-        friend_emb_seqs2 = self.item_embeeding(short_input2)  # emb_seqs.shape : [max_length, embedding_dim]
-        friend_emb_seqs2 = torch.unsqueeze(friend_emb_seqs2, 0)
-        for batch in range(self.batch_size * self.samples_2 - 1):
-            short_input2 = torch.LongTensor(feed_dict['support_sessions_layer2'][batch + 1])
-            friend_emb_seq2 = self.item_embeeding(short_input2)
-            friend_emb_seq2 = torch.unsqueeze(friend_emb_seq2, 0)
-            friend_emb_seqs2 = torch.cat((friend_emb_seqs2, friend_emb_seq2), 0)
+        short2_arange = torch.arange(self.batch_size * self.samples_2, dtype=torch.long)
+        short_input2 = torch.LongTensor(support_sessions_layer2)[short2_arange]
+        friend_emb_seqs2 = self.item_embeeding(short_input2)
 
-        short_term2, (_, _) = self.lstm(friend_emb_seqs2)
-        # short_term2.shape : [batch_size * sample2, max_length, embedding_dim]
+        short_term2, (_, _) = self.lstm(friend_emb_seqs2) # short_term2.shape : [batch_size * sample2, max_length, embedding_dim]
 
         short_term2 = short_term2[:, 0, :]  # [, max_length, ] -> [, ]
 
@@ -163,20 +152,29 @@ class DGRec(torch.nn.Module):
 
         long_short_term1 = torch.relu(self.W1(long_short_term1))
         long_short_term2 = torch.relu(self.W1(long_short_term2))
+
         # long_short_term1.shape : [batch_size * sample1 * sample2, embedding_dim]
         # long_short_term2.shape : [batch_size * sample2, embedding_dim]
 
         long_short_term = [long_short_term2, long_short_term1]
 
-        # Part-3 : Graph-Attention Network
+        return long_short_term
+
+    def score(self, feed_dict):
+        hu = self.individual_interest(feed_dict['input_session'])
+        long_short_term = self.friends_interest(feed_dict['support_nodes_layer1'],
+                                                feed_dict['support_nodes_layer2'],
+                                                feed_dict['support_sessions_layer1'],
+                                                feed_dict['support_sessions_layer2'])
+        # GAT
         hu = torch.swapaxes(hu, 0, 1)
         outputs = []
         next_hidden = []
         support_sizes = [1, self.samples_2, self.samples_1 * self.samples_2]
         num_samples = [self.samples_1, self.samples_2]
         for i in range(self.max_length):
+            hu_ = hu[i]  # implement 1 of 20
             for layer in self.layers:
-                hu_ = hu[i]  # implement 1 of 20
                 hidden = [hu_, long_short_term[0], long_short_term[1]]
                 for hop in range(self.num_layers):
                     neigh_dims = [self.batch_size * support_sizes[hop],
@@ -197,7 +195,6 @@ class DGRec(torch.nn.Module):
         mask = torch.LongTensor(feed_dict['mask_y'])
         logits = torch.swapaxes(logits, 0, 1)
         logits *= torch.unsqueeze(mask, 2)
-
 
         # return : [batch, max_length, item_embedding]
         return logits

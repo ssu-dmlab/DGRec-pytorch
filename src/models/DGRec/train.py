@@ -6,7 +6,7 @@ from models.DGRec.model import DGRec
 from models.DGRec.eval import MyEvaluator
 from models.DGRec.batch.minibatch import MinibatchIterator
 from tqdm import tqdm
-
+from loguru import logger
 
 class MyTrainer:
     def __init__(self, device):
@@ -52,12 +52,12 @@ class MyTrainer:
             for batch in tqdm(range(batch_len), position=1, leave=False, desc='batch'):
                 model.train()
                 feed_dict = minibatch.next_train_minibatch_feed_dict()
-
                 optimizer.zero_grad()
 
                 loss = model(feed_dict, feed_dict['output_session'])
 
                 loss.backward()
+
                 optimizer.step()
                 '''
                 if (batch % 10) == 0:
