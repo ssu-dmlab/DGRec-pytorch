@@ -45,20 +45,20 @@ def run_mymodel(device, data, hyper_param):
                                            hyper_param=hyper_param)
 
     evaluator = MyEvaluator(device=device)
-    accuracy, recall_k = evaluator.evaluate(model, minibatch, hyper_param)
+    loss, recall_k, ndcg = evaluator.evaluate(model, minibatch, hyper_param)
 
-    return accuracy, recall_k
+    return loss, recall_k, ndcg
 
 
 def main(model='DGRec',
          seed = 123,
          training=True,
-         epochs = 10,
+         epochs = 2,
          act = 'relu',
-         batch_size = 50,
+         batch_size = 2,
          max_degree = 50,
          concat = False,
-         learning_rate = 0.01,
+         learning_rate = 0.005,
          hidden_size = 100,
          embedding_size = 100,
          emb_user = 100,
@@ -143,7 +143,7 @@ def main(model='DGRec',
 
 
     if model == 'DGRec':
-        accuracy, recall_k = run_mymodel(device=device,
+        loss, recall_k, ndcg = run_mymodel(device=device,
                                data=data,
                                hyper_param=hyper_param)
 
@@ -155,7 +155,7 @@ def main(model='DGRec',
         return
 
     # Step 3. Report and save the final results
-    logger.info("The model has been trained. The test accuracy is {:.4} and recall_k is {:.4}.".format(accuracy, recall_k))
+    logger.info("The model has been trained. The test accuracy is {:.4} and recall_k is {:.4}.".format(loss, recall_k, ndcg))
 
 
 if __name__ == "__main__":

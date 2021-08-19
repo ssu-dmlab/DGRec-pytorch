@@ -49,8 +49,7 @@ class MyTrainer:
 
         for epoch in pbar:
             minibatch.shuffle()
-            for batch in tqdm(range(batch_len), position=1, leave=False, desc='batch'):
-                model.train()
+            for batch in tqdm(range(2), position=1, leave=False, desc='batch'):
                 feed_dict = minibatch.next_train_minibatch_feed_dict()
                 optimizer.zero_grad()
 
@@ -64,6 +63,7 @@ class MyTrainer:
                     accuracy, real_accuracy, recall_k = evaluator.evaluate(model, minibatch, hyper_param, 'val')
 
                     #pbar.write('Epoch {:02}: {:.4}  {:.4}\n'.format(epoch, accuracy, recall_k))
+                    model.train()
                 '''
             pbar.write('Epoch {:02}: {:.4} training loss'.format(epoch, loss.item()))
             pbar.update()
