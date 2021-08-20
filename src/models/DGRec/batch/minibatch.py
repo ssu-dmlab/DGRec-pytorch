@@ -326,3 +326,5 @@ class MinibatchIterator(object):
         '''
         self.train_session_ids = np.random.permutation(self.train_session_ids)
         self.batch_num = 0
+        self.batch_num_val = 0
+        self.batch_num_test = 0

@@ -12,7 +12,7 @@ class MyTrainer:
     def __init__(self, device):
         self.device = device
 
-    def train_with_hyper_param(self, minibatch, hyper_param):
+    def train_with_hyper_param(self, minibatch, hyper_param, val_minibatch=None):
         device = hyper_param['device']
         epochs = hyper_param['epochs']
         act = hyper_param['act']
@@ -35,8 +35,6 @@ class MyTrainer:
         print_every = hyper_param['print_every']
         val_every = hyper_param['val_every']
 
-
-
         model = DGRec(hyper_param, num_layers=2).to(self.device)
         evaluator = MyEvaluator(device=device)
         optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
@@ -49,7 +47,7 @@ class MyTrainer:
 
         for epoch in pbar:
             minibatch.shuffle()
-            for batch in tqdm(range(2), position=1, leave=False, desc='batch'):
+            for batch in tqdm(range(batch_len), position=1, leave=False, desc='batch'):
                 feed_dict = minibatch.next_train_minibatch_feed_dict()
                 optimizer.zero_grad()
 
@@ -58,13 +56,13 @@ class MyTrainer:
                 loss.backward()
 
                 optimizer.step()
-                '''
-                if (batch % 10) == 0:
-                    accuracy, real_accuracy, recall_k = evaluator.evaluate(model, minibatch, hyper_param, 'val')
 
-                    #pbar.write('Epoch {:02}: {:.4}  {:.4}\n'.format(epoch, accuracy, recall_k))
+                if (batch % 100) == 0 and val_minibatch is not None:
+                    loss, recall_k, ndcg = evaluator.evaluate(model, val_minibatch, hyper_param, 'val')
+
+                    pbar.write('Epoch {:02}: {:.4}  {:.4}  {:.4}'.format(epoch, loss, recall_k, ndcg))
                     model.train()
-                '''
+
             pbar.write('Epoch {:02}: {:.4} training loss'.format(epoch, loss.item()))
             pbar.update()
 

@@ -39,10 +39,20 @@ def run_mymodel(device, data, hyper_param):
                                   max_length=max_length,
                                   samples_1_2=[samples_1, samples_2])
 
+    val_minibatch = MinibatchIterator(adj_info,
+                                  latest_per_user_by_time,
+                                  [train_df, valid_df, test_df],
+                                  batch_size=batch_size,
+                                  max_degree=max_degree,
+                                  num_nodes=len(user_id_map),
+                                  max_length=max_length,
+                                  samples_1_2=[samples_1, samples_2])
+
     trainer = MyTrainer(device=device)
 
     model = trainer.train_with_hyper_param(minibatch=minibatch,
-                                           hyper_param=hyper_param)
+                                           hyper_param=hyper_param,
+                                           val_minibatch=val_minibatch)
 
     evaluator = MyEvaluator(device=device)
     loss, recall_k, ndcg = evaluator.evaluate(model, minibatch, hyper_param)
@@ -53,12 +63,12 @@ def run_mymodel(device, data, hyper_param):
 def main(model='DGRec',
          seed = 123,
          training=True,
-         epochs = 2,
+         epochs = 10,
          act = 'relu',
-         batch_size = 2,
+         batch_size = 50,
          max_degree = 50,
          concat = False,
-         learning_rate = 0.005,
+         learning_rate = 0.01,
          hidden_size = 100,
          embedding_size = 100,
          emb_user = 100,
@@ -155,7 +165,7 @@ def main(model='DGRec',
         return
 
     # Step 3. Report and save the final results
-    logger.info("The model has been trained. The test accuracy is {:.4} and recall_k is {:.4}.".format(loss, recall_k, ndcg))
+    logger.info("The model has been trained. The test loss is {:.4} and recall_k is {:.4} and ndcg is {:.4}.".format(loss, recall_k, ndcg))
 
 
 if __name__ == "__main__":
