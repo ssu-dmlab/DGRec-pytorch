@@ -95,4 +95,4 @@ class MyEvaluator:
         mask = torch.reshape(mask, [-1])
         ndcg *= mask
 
-        return (torch.sum(ndcg) / batch_size) / 20
+        return torch.sum(ndcg) / batch_size

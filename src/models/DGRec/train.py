@@ -45,9 +45,14 @@ class MyTrainer:
         batch_len = minibatch.train_batch_len()
         batch_len = int(batch_len)
 
+        patience = 10
+        inc = 0
+        early_stopping = False
+        highest_val_recall = -1.0
+
         for epoch in pbar:
             minibatch.shuffle()
-            for batch in tqdm(range(batch_len), position=1, leave=False, desc='batch'):
+            for batch in tqdm(range(2), position=1, leave=False, desc='batch'):
                 feed_dict = minibatch.next_train_minibatch_feed_dict()
                 optimizer.zero_grad()
 
@@ -59,9 +64,17 @@ class MyTrainer:
 
                 if (batch % 100) == 0 and val_minibatch is not None:
                     loss, recall_k, ndcg = evaluator.evaluate(model, val_minibatch, hyper_param, 'val')
+                    if(recall_k >= highest_val_recall):
+                        pbar.write('Epoch {:02}: {:.4}  {:.4}  {:.4}'.format(epoch, loss, recall_k, ndcg))
+                        model.train()
+                    else:
+                        inc += 1
+                if inc >= patience:
+                    early_stopping = True
+                    break
 
-                    pbar.write('Epoch {:02}: {:.4}  {:.4}  {:.4}'.format(epoch, loss, recall_k, ndcg))
-                    model.train()
+            if early_stopping:
+                break
 
             pbar.write('Epoch {:02}: {:.4} training loss'.format(epoch, loss.item()))
             pbar.update()
