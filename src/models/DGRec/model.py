@@ -28,7 +28,9 @@ class GAT(nn.Module):
             self.vars['bias'] = zeros([self.output_dim])
 
         self.feat_drop = nn.Dropout(dropout) if dropout > 0 else None
-        self.fc = nn.Linear(100, 100, bias=True)
+        self.fc = nn.Linear(input_dim, output_dim, bias=True)
+        self.fc.weight = torch.nn.init.xavier_uniform_(self.fc.weight)
+        #self.fc.bias = torch.zeros_like(self.fc.bias)
         self.m = nn.Softmax(dim=-1)
 
         self.input_dim = input_dim
@@ -73,8 +75,7 @@ class DGRec(torch.nn.Module):
     def __init__(
             self,
             hyper_param,
-            num_layers,
-            feat_drop=0.,
+            num_layers
     ):
         super(DGRec, self).__init__()
         self.epochs = hyper_param['epochs']
@@ -113,6 +114,7 @@ class DGRec(torch.nn.Module):
         self.feat_drop = nn.Dropout(self.dropout) if self.dropout > 0 else None
         self.lstm = nn.LSTM(self.embedding_size, self.embedding_size, batch_first=True)
         self.W1 = nn.Linear(2 * self.embedding_size, self.embedding_size, bias=False)
+        self.W1.weight = torch.nn.init.xavier_uniform_(self.W1.weight)
 
         self.layers = nn.ModuleList()
         input_dim = self.embedding_size
@@ -121,6 +123,7 @@ class DGRec(torch.nn.Module):
             self.layers.append(aggregator)
 
         self.W2 = nn.Linear(input_dim + self.embedding_size, self.embedding_size, bias=False)
+        self.W2.weight = torch.nn.init.xavier_uniform_(self.W2.weight)
 
     def individual_interest(self, input_session):
         input = torch.LongTensor(input_session[0])  # input.shape : [max_length]

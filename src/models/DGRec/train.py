@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import torch
+import matplotlib.pyplot as plt
 from models.DGRec.model import DGRec
 from models.DGRec.eval import MyEvaluator
 from models.DGRec.batch.minibatch import MinibatchIterator
@@ -13,6 +14,11 @@ class MyTrainer:
         self.device = device
 
     def train_with_hyper_param(self, minibatch, hyper_param, val_minibatch=None):
+        train_losses = []
+        val_losses = []
+        val_recall = []
+        val_ndcg = []
+
         device = hyper_param['device']
         epochs = hyper_param['epochs']
         act = hyper_param['act']
@@ -45,7 +51,7 @@ class MyTrainer:
         batch_len = minibatch.train_batch_len()
         batch_len = int(batch_len)
 
-        patience = 5
+        patience = 10
         inc = 0
         early_stopping = False
         highest_val_recall = -1.0
@@ -58,16 +64,30 @@ class MyTrainer:
                 optimizer.zero_grad()
 
                 loss = model(feed_dict, feed_dict['output_session'])
+                train_losses.append(loss.item())
 
                 loss.backward()
                 optimizer.step()
                 scheduler.step()
 
                 if (batch % 100) == 0:
-                    print('Batch {:03}: {:.4} training loss'.format(batch, loss.item()))
+                    print('Batch {:03}: train loss: {:.4} '.format(batch, loss.item()))
+                    loss, recall_k, ndcg = evaluator.evaluate(model, val_minibatch, hyper_param, 'val')
+                    val_losses.append(loss)
+                    val_recall.append(recall_k)
+                    val_ndcg.append(ndcg)
+                    if (recall_k >= highest_val_recall):
+                        pbar.write('Batch {:03}: valid loss: {:.4},  valid recall@20: {:.4},  valid ndcg: {:.4}'
+                                   .format(batch, loss, recall_k, ndcg))
 
+                        highest_val_recall = recall_k
+                        model.train()
+                    else:
+                        inc += 1
+                '''
                 if (batch % 500) == 0 and val_minibatch is not None:
-                    #print(torch.optim.lr_scheduler.StepLR.get_last_lr(scheduler))
+                    
+                    print(torch.optim.lr_scheduler.StepLR.get_last_lr(scheduler))
                     loss, recall_k, ndcg = evaluator.evaluate(model, val_minibatch, hyper_param, 'val')
                     if(recall_k >= highest_val_recall):
                         pbar.write('Batch {:03}: valid loss: {:.4},  valid recall@20: {:.4},  valid ndcg: {:.4}'
@@ -77,6 +97,7 @@ class MyTrainer:
                         model.train()
                     else:
                         inc += 1
+                '''
                 if inc >= patience:
                     early_stopping = True
                     break
@@ -89,5 +110,23 @@ class MyTrainer:
             pbar.update()
 
         pbar.close()
+
+        # plot graph
+        plt.figure(1, figsize=(10, 5))
+        plt.title("Training and Validation Loss")
+        plt.plot(val_losses, label="val")
+        plt.plot(train_losses, label="train")
+        plt.xlabel("iterations")
+        plt.ylabel("Loss")
+        plt.legend()
+
+        plt.figure(2, figsize=(10, 5))
+        plt.title("recall@20 and ndcg")
+        plt.plot(val_recall, label="recall@20")
+        plt.plot(val_ndcg, label="ndcg")
+        plt.xlabel("iterations")
+        plt.ylabel("accuracy")
+        plt.legend()
+        plt.show()
 
         return model
