@@ -12,12 +12,13 @@ from loguru import logger
 class MyTrainer:
     def __init__(self, device):
         self.device = device
+        self.train_losses = []
+        self.val_losses = []
+        self.val_recall = []
+        self.val_ndcg = []
 
     def train_with_hyper_param(self, minibatch, hyper_param, val_minibatch=None):
-        train_losses = []
-        val_losses = []
-        val_recall = []
-        val_ndcg = []
+
 
         device = hyper_param['device']
         epochs = hyper_param['epochs']
@@ -64,7 +65,7 @@ class MyTrainer:
                 optimizer.zero_grad()
 
                 loss = model(feed_dict, feed_dict['output_session'])
-                train_losses.append(loss.item())
+                self.train_losses.append(loss.item())
 
                 loss.backward()
                 optimizer.step()
@@ -73,9 +74,9 @@ class MyTrainer:
                 if (batch % 100) == 0:
                     print('Batch {:03}: train loss: {:.4} '.format(batch, loss.item()))
                     loss, recall_k, ndcg = evaluator.evaluate(model, val_minibatch, hyper_param, 'val')
-                    val_losses.append(loss)
-                    val_recall.append(recall_k)
-                    val_ndcg.append(ndcg)
+                    self.val_losses.append(loss)
+                    self.val_recall.append(recall_k)
+                    self.val_ndcg.append(ndcg)
 
                     model.train()
                     if (recall_k >= highest_val_recall):
@@ -101,16 +102,16 @@ class MyTrainer:
         # plot graph
         plt.figure(1, figsize=(10, 5))
         plt.title("Training and Validation Loss")
-        plt.plot(val_losses, label="val")
-        plt.plot(train_losses, label="train")
+        plt.plot(self.val_losses, label="val")
+        plt.plot(self.train_losses, label="train")
         plt.xlabel("iterations")
         plt.ylabel("Loss")
         plt.legend()
 
         plt.figure(2, figsize=(10, 5))
         plt.title("recall@20 and ndcg")
-        plt.plot(val_recall, label="recall@20")
-        plt.plot(val_ndcg, label="ndcg")
+        plt.plot(self.val_recall, label="recall@20")
+        plt.plot(self.val_ndcg, label="ndcg")
         plt.xlabel("iterations")
         plt.ylabel("accuracy")
         plt.legend()
