@@ -38,34 +38,42 @@ class MyTrainer:
         model = DGRec(hyper_param, num_layers=2).to(self.device)
         evaluator = MyEvaluator(device=device)
         optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+        scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=400, gamma=0.98)
 
-        model.train()
         pbar = tqdm(range(epochs), position=0, leave=False, desc='epoch')
 
         batch_len = minibatch.train_batch_len()
         batch_len = int(batch_len)
 
-        patience = 10
+        patience = 5
         inc = 0
         early_stopping = False
         highest_val_recall = -1.0
 
+        model.train()
         for epoch in pbar:
             minibatch.shuffle()
-            for batch in tqdm(range(2), position=1, leave=False, desc='batch'):
+            for batch in tqdm(range(batch_len), position=1, leave=False, desc='batch'):
                 feed_dict = minibatch.next_train_minibatch_feed_dict()
                 optimizer.zero_grad()
 
                 loss = model(feed_dict, feed_dict['output_session'])
 
                 loss.backward()
-
                 optimizer.step()
+                scheduler.step()
 
-                if (batch % 100) == 0 and val_minibatch is not None:
+                if (batch % 100) == 0:
+                    print('Batch {:03}: {:.4} training loss'.format(batch, loss.item()))
+
+                if (batch % 500) == 0 and val_minibatch is not None:
+                    #print(torch.optim.lr_scheduler.StepLR.get_last_lr(scheduler))
                     loss, recall_k, ndcg = evaluator.evaluate(model, val_minibatch, hyper_param, 'val')
                     if(recall_k >= highest_val_recall):
-                        pbar.write('Epoch {:02}: {:.4}  {:.4}  {:.4}'.format(epoch, loss, recall_k, ndcg))
+                        pbar.write('Batch {:03}: valid loss: {:.4},  valid recall@20: {:.4},  valid ndcg: {:.4}'
+                                   .format(batch, loss, recall_k, ndcg))
+
+                        highest_val_recall = recall_k
                         model.train()
                     else:
                         inc += 1
@@ -74,6 +82,7 @@ class MyTrainer:
                     break
 
             if early_stopping:
+                print('Early stop at epoch: {}, batch steps: {}'.format(epoch, batch))
                 break
 
             pbar.write('Epoch {:02}: {:.4} training loss'.format(epoch, loss.item()))

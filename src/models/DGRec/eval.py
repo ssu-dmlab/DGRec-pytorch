@@ -6,7 +6,7 @@ import numpy as np
 from models.DGRec.model import DGRec
 from models.DGRec.batch.minibatch import MinibatchIterator
 from tqdm import tqdm
-from torch.nn import functional as F
+import torch.nn.functional as F
 
 class MyEvaluator:
     def __init__(self, device):
@@ -45,7 +45,7 @@ class MyEvaluator:
             predictions = model.predict(feed_dict) # predictions : [batch, max_length, item_embedding]
 
             loss = self._loss(predictions, labels)
-            recall_k = self._recall(predictions, labels, batch_size)
+            recall_k = self._recall(predictions, labels)
             ndcg = self._ndcg(predictions, labels, num_items, feed_dict['mask_y'])
 
         return loss.item(), recall_k.item(), ndcg.item()
@@ -53,7 +53,6 @@ class MyEvaluator:
     def _loss(self, predictions, labels):
         logits = torch.swapaxes(predictions, 1, 2)
         logits = logits.to(dtype=torch.float)
-        #print(logits.shape)
         labels = torch.tensor(np.array(labels), dtype=torch.long)
 
         loss = F.cross_entropy(logits,
@@ -61,7 +60,8 @@ class MyEvaluator:
 
         return loss
 
-    def _recall(self, predictions, labels, batch_size):
+    def _recall(self, predictions, labels):
+        batch_size = predictions.shape[0]
         _, top_k_index = torch.topk(predictions, k=20, dim=2)  # top_k_index : [batch, max_length, k]
 
         labels = torch.unsqueeze(labels, dim=2)  # labels : [batch, max_length, 1]
@@ -71,28 +71,22 @@ class MyEvaluator:
         mask_sum = (labels != 0).sum(dim=1)  # mask_sum : [batch, 1]
         mask_sum = torch.squeeze(mask_sum, dim=1)  # mask_sum : [batch]
 
-        recall_k = (recall_corrects.sum(dim=1) / mask_sum).sum() / batch_size
+        recall_k = (recall_corrects.sum(dim=1) / mask_sum).sum()
 
-        return recall_k
+        return recall_k / batch_size
 
     def _ndcg(self, logits, labels, num_items, mask):
-        batch_size = logits.shape[0]
         logits = torch.reshape(logits, (logits.shape[0] * logits.shape[1], logits.shape[2]))
         predictions = torch.transpose(logits, 0, 1)
         targets = torch.reshape(labels, [-1])
         pred_values = torch.unsqueeze(torch.diagonal(predictions[targets]), -1)
-        #print(pred_values)
-        #print(targets)
         tile_pred_values = torch.tile(pred_values, [1, num_items])
-        #print(tile_pred_values.shape)
-        #print(tile_pred_values)
-        #print(logits)
         ranks = torch.sum((logits > tile_pred_values).type(torch.float), -1) + 1
-        #print(ranks)
         ndcg = 1. / (torch.log2(1.0 + ranks))
 
         mask = torch.Tensor(mask)
+        mask_sum = torch.sum(mask)
         mask = torch.reshape(mask, [-1])
         ndcg *= mask
 
-        return torch.sum(ndcg) / batch_size
+        return torch.sum(ndcg) / mask_sum

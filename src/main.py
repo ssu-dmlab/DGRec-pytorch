@@ -61,14 +61,14 @@ def run_mymodel(device, data, hyper_param):
 
 
 def main(model='DGRec',
-         seed = 123,
+         seed=123,
          training=True,
-         epochs = 10,
+         epochs = 20,
          act = 'relu',
          batch_size = 50,
          max_degree = 50,
          concat = False,
-         learning_rate = 0.01,
+         learning_rate = 0.002,
          hidden_size = 100,
          embedding_size = 100,
          emb_user = 100,
