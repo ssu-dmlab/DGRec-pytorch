@@ -83,6 +83,7 @@ class MyTrainer:
                         pbar.write('Batch {:03}: valid loss: {:.4},  valid recall@20: {:.4},  valid ndcg: {:.4}'
                                    .format(batch, loss, recall_k, ndcg))
                         highest_val_recall = recall_k
+                        inc = 0
                     else:
                         inc += 1
 
