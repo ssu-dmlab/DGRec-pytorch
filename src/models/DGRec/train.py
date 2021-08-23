@@ -76,28 +76,15 @@ class MyTrainer:
                     val_losses.append(loss)
                     val_recall.append(recall_k)
                     val_ndcg.append(ndcg)
+
+                    model.train()
                     if (recall_k >= highest_val_recall):
                         pbar.write('Batch {:03}: valid loss: {:.4},  valid recall@20: {:.4},  valid ndcg: {:.4}'
                                    .format(batch, loss, recall_k, ndcg))
-
                         highest_val_recall = recall_k
-                        model.train()
                     else:
                         inc += 1
-                '''
-                if (batch % 500) == 0 and val_minibatch is not None:
-                    
-                    print(torch.optim.lr_scheduler.StepLR.get_last_lr(scheduler))
-                    loss, recall_k, ndcg = evaluator.evaluate(model, val_minibatch, hyper_param, 'val')
-                    if(recall_k >= highest_val_recall):
-                        pbar.write('Batch {:03}: valid loss: {:.4},  valid recall@20: {:.4},  valid ndcg: {:.4}'
-                                   .format(batch, loss, recall_k, ndcg))
 
-                        highest_val_recall = recall_k
-                        model.train()
-                    else:
-                        inc += 1
-                '''
                 if inc >= patience:
                     early_stopping = True
                     break
