@@ -11,46 +11,26 @@ from utils import glorot, zeros
 
 
 class GAT(nn.Module):
-    def __init__(self, input_dim, output_dim, neigh_input_dim=None, dropout=0., bias=False, act=nn.ReLU(), concat=False, batch_norm=False, **kwargs):
+    def __init__(self, input_dim, output_dim, dropout=0., bias=False, act=nn.ReLU(), **kwargs):
         super().__init__()
 
         self.bias = bias
         self.act = act
-        self.concat = concat
-
-        if neigh_input_dim is None:
-            neigh_input_dim = input_dim
 
         self.vars = {}
-        self.vars['weights'] = glorot([neigh_input_dim, output_dim])
+        self.vars['weights'] = glorot([input_dim, output_dim])
 
         if self.bias:
-            self.vars['bias'] = zeros([self.output_dim])
+            self.vars['bias'] = zeros([output_dim])
 
         self.feat_drop = nn.Dropout(dropout) if dropout > 0 else None
         self.fc = nn.Linear(input_dim, output_dim, bias=True)
         self.fc.weight = torch.nn.init.xavier_uniform_(self.fc.weight)
-        #self.fc.bias = torch.zeros_like(self.fc.bias)
         self.m = nn.Softmax(dim=-1)
 
-        self.input_dim = input_dim
-        self.output_dim = output_dim
-
-        '''
-        if batch_norm:
-            self.batch_norm_q = nn.BatchNorm1d(self.input_dim)
-            self.batch_norm_k = nn.BatchNorm1d(self.input_dim)
-        else:
-            self.batch_norm_q = None
-            self.batch_norm_k = None
-        '''
     def forward(self, inputs):
         self_vecs, neigh_vecs = inputs
-        '''
-        if self.batch_norm_q is not None:
-            self_vecs = self.batch_norm_q(self_vecs)
-            neigh_vecs = self.batch_norm_k(neigh_vecs)
-        '''
+
         if self.feat_drop is not None:
             self_vecs = self.feat_drop(self_vecs)
             neigh_vecs = self.feat_drop(neigh_vecs)
@@ -78,26 +58,15 @@ class DGRec(torch.nn.Module):
             num_layers
     ):
         super(DGRec, self).__init__()
-        self.epochs = hyper_param['epochs']
         self.act = hyper_param['act']
         self.batch_size = hyper_param['batch_size']
-        self.max_degree = hyper_param['max_degree']
         self.num_users = hyper_param['num_users']
         self.num_items = hyper_param['num_items']
-        self.learning_rate = hyper_param['learning_rate']
-        self.hidden_size = hyper_param['hidden_size']
         self.embedding_size = hyper_param['embedding_size']
-        self.emb_user = hyper_param['emb_user']
         self.max_length = hyper_param['max_length']
         self.samples_1 = hyper_param['samples_1']
         self.samples_2 = hyper_param['samples_2']
-        self.dim1 = hyper_param['dim1']
-        self.dim2 = hyper_param['dim2']
-        self.model_size = hyper_param['model_size']
         self.dropout = hyper_param['dropout']
-        self.weight_decay = hyper_param['weight_decay']
-        self.print_every = hyper_param['print_every']
-        self.val_every = hyper_param['val_every']
         self.num_layers = num_layers
 
         if self.act == 'relu':
@@ -119,7 +88,7 @@ class DGRec(torch.nn.Module):
         self.layers = nn.ModuleList()
         input_dim = self.embedding_size
         for layer in range(num_layers):
-            aggregator = GAT(input_dim, input_dim, act=self.act, dropout=self.dropout, batch_norm=True ,model_size=self.model_size)
+            aggregator = GAT(input_dim, input_dim, act=self.act, dropout=self.dropout)
             self.layers.append(aggregator)
 
         self.W2 = nn.Linear(input_dim + self.embedding_size, self.embedding_size, bias=False)

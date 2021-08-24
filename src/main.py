@@ -55,53 +55,34 @@ def run_mymodel(device, data, hyper_param):
                                            val_minibatch=val_minibatch)
 
     evaluator = MyEvaluator(device=device)
-    loss, recall_k, ndcg = evaluator.evaluate(model, minibatch, hyper_param)
+    loss, recall_k, ndcg = evaluator.evaluate(model, minibatch)
 
     return loss, recall_k, ndcg
 
 
 def main(model='DGRec',
          seed=123,
-         training=True,
-         epochs = 20,
-         act = 'relu',
-         batch_size = 50,
-         max_degree = 50,
-         concat = False,
-         learning_rate = 0.002,
-         hidden_size = 100,
-         embedding_size = 100,
-         emb_user = 100,
-         max_length = 20,
-         samples_1 = 10,
-         samples_2 = 5,
-         dim1 = 100,
-         dim2 = 100,
-         model_size = 'small',
-         dropout = 0.,
-         weight_decay = 0.,
-         print_every = 100,
-         val_every = 500,
-         ckpt_dir = 'save/'):
-    """
-    Handle user arguments of ml-project-template
-
-    :param model: name of model to be trained and tested
-    :param seed: random_seed (if -1, a default seed is used)
-    :param batch_size: size of batch
-    :param epochs: number of training epochs
-    :param learning_rate: learning rate
-    """
+         epochs=20,
+         act='relu',
+         batch_size=50,
+         max_degree=50,
+         learning_rate=0.002,
+         embedding_size=100,
+         max_length=20,
+         samples_1=10,
+         samples_2=5,
+         dropout=0.2,
+         ckpt_dir='save/'
+         ):
 
     # Step 0. Initialization
     logger.info("The main procedure has started with the following parameters:")
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     set_random_seed(seed=seed, device=device)
+
     param = dict()
     param['model'] = model
     param['seed'] = seed
-    param['training'] = training
-    param['concat'] = concat
     param['ckpt_dir'] = ckpt_dir
     log_param(param)
 
@@ -117,13 +98,11 @@ def main(model='DGRec',
     train_df = data[4]
     valid_df = data[5]
     test_df = data[6]
+    logger.info("The datasets are loaded")
 
-    logger.info("The datasets are loaded where their statistics are as follows:")
-    logger.info("- # of training instances: {}".format(len(train_df)))
-    logger.info("- # of test instances: {}".format(len(test_df)))
     # Step 2. Run (train and evaluate) the specified model
-
     logger.info("Training the model has begun with the following hyperparameters:")
+
     num_items = len(item_id_map) + 1
     num_users = len(user_id_map)
 
@@ -136,26 +115,17 @@ def main(model='DGRec',
     hyper_param['num_users'] = num_users
     hyper_param['num_items'] = num_items
     hyper_param['learning_rate'] = learning_rate
-    hyper_param['hidden_size'] = hidden_size
     hyper_param['embedding_size'] = embedding_size
-    hyper_param['emb_user'] = emb_user
     hyper_param['max_length'] = max_length
     hyper_param['samples_1'] = samples_1
     hyper_param['samples_2'] = samples_2
-    hyper_param['dim1'] = dim1
-    hyper_param['dim2'] = dim2
-    hyper_param['model_size'] = model_size
     hyper_param['dropout'] = dropout
-    hyper_param['weight_decay'] = weight_decay
-    hyper_param['print_every'] = print_every
-    hyper_param['val_every'] = val_every
     log_param(hyper_param)
-
 
     if model == 'DGRec':
         loss, recall_k, ndcg = run_mymodel(device=device,
-                               data=data,
-                               hyper_param=hyper_param)
+                                           data=data,
+                                           hyper_param=hyper_param)
 
         # - If you want to add other model, then add an 'elif' statement with a new runnable function
         #   such as 'run_my_model' to the below

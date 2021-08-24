@@ -12,29 +12,8 @@ class MyEvaluator:
     def __init__(self, device):
         self.device = device
 
-    def evaluate(self, model, minibatch, hyper_param, mode='test'):
+    def evaluate(self, model, minibatch, mode='test'):
         with torch.no_grad():
-
-            epochs = hyper_param['epochs']
-            act = hyper_param['act']
-            batch_size = hyper_param['batch_size']
-            max_degree = hyper_param['max_degree']
-            num_users = hyper_param['num_users']
-            num_items = hyper_param['num_items']
-            learning_rate = hyper_param['learning_rate']
-            hidden_size = hyper_param['hidden_size']
-            embedding_size = hyper_param['embedding_size']
-            emb_user = hyper_param['emb_user']
-            max_length = hyper_param['max_length']
-            samples_1 = hyper_param['samples_1']
-            samples_2 = hyper_param['samples_2']
-            dim1 = hyper_param['dim1']
-            dim2 = hyper_param['dim2']
-            dropout = hyper_param['dropout']
-            weight_decay = hyper_param['weight_decay']
-            print_every = hyper_param['print_every']
-            val_every = hyper_param['val_every']
-
             model.eval()
 
             minibatch.shuffle()
@@ -46,7 +25,7 @@ class MyEvaluator:
 
             loss = self._loss(predictions, labels)
             recall_k = self._recall(predictions, labels)
-            ndcg = self._ndcg(predictions, labels, num_items, feed_dict['mask_y'])
+            ndcg = self._ndcg(predictions, labels, feed_dict['mask_y'])
 
         return loss.item(), recall_k.item(), ndcg.item()
 
@@ -75,7 +54,8 @@ class MyEvaluator:
 
         return recall_k / batch_size
 
-    def _ndcg(self, logits, labels, num_items, mask):
+    def _ndcg(self, logits, labels, mask):
+        num_items = logits.shape[2]
         logits = torch.reshape(logits, (logits.shape[0] * logits.shape[1], logits.shape[2]))
         predictions = torch.transpose(logits, 0, 1)
         targets = torch.reshape(labels, [-1])

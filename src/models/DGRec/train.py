@@ -18,46 +18,25 @@ class MyTrainer:
         self.val_ndcg = []
 
     def train_with_hyper_param(self, minibatch, hyper_param, val_minibatch=None):
-
-
         device = hyper_param['device']
         epochs = hyper_param['epochs']
-        act = hyper_param['act']
-        batch_size = hyper_param['batch_size']
-        max_degree = hyper_param['max_degree']
-        num_users = hyper_param['num_users']
-        num_items = hyper_param['num_items']
         learning_rate = hyper_param['learning_rate']
-        hidden_size = hyper_param['hidden_size']
-        embedding_size = hyper_param['embedding_size']
-        emb_user = hyper_param['emb_user']
-        max_length = hyper_param['max_length']
-        samples_1 = hyper_param['samples_1']
-        samples_2 = hyper_param['samples_2']
-        dim1 = hyper_param['dim1']
-        dim2 = hyper_param['dim2']
-        model_size = hyper_param['model_size']
-        dropout = hyper_param['dropout']
-        weight_decay = hyper_param['weight_decay']
-        print_every = hyper_param['print_every']
-        val_every = hyper_param['val_every']
 
         model = DGRec(hyper_param, num_layers=2).to(self.device)
         evaluator = MyEvaluator(device=device)
         optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
         scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=400, gamma=0.5)
 
-        pbar = tqdm(range(epochs), position=0, leave=False, desc='epoch')
-
-        batch_len = minibatch.train_batch_len()
-        batch_len = int(batch_len)
-
         patience = 20
         inc = 0
         early_stopping = False
         highest_val_recall = -1.0
 
-        model.train()
+        batch_len = minibatch.train_batch_len()
+        batch_len = int(batch_len)
+
+        pbar = tqdm(range(epochs), position=0, leave=False, desc='epoch')
+
         for epoch in pbar:
             minibatch.shuffle()
             for batch in tqdm(range(batch_len), position=1, leave=False, desc='batch'):
@@ -72,7 +51,7 @@ class MyTrainer:
                 optimizer.step()
                 scheduler.step()
 
-                val_loss, val_recall_k, val_ndcg = evaluator.evaluate(model, val_minibatch, hyper_param, 'val')
+                val_loss, val_recall_k, val_ndcg = evaluator.evaluate(model, val_minibatch, 'val')
                 self.val_losses.append(val_loss)
                 self.val_recall.append(val_recall_k)
                 self.val_ndcg.append(val_ndcg)
