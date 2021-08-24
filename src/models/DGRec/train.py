@@ -45,14 +45,14 @@ class MyTrainer:
         model = DGRec(hyper_param, num_layers=2).to(self.device)
         evaluator = MyEvaluator(device=device)
         optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
-        scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=400, gamma=0.98)
+        scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=400, gamma=0.5)
 
         pbar = tqdm(range(epochs), position=0, leave=False, desc='epoch')
 
         batch_len = minibatch.train_batch_len()
         batch_len = int(batch_len)
 
-        patience = 10
+        patience = 20
         inc = 0
         early_stopping = False
         highest_val_recall = -1.0
@@ -61,6 +61,7 @@ class MyTrainer:
         for epoch in pbar:
             minibatch.shuffle()
             for batch in tqdm(range(batch_len), position=1, leave=False, desc='batch'):
+                model.train()
                 feed_dict = minibatch.next_train_minibatch_feed_dict()
                 optimizer.zero_grad()
 
@@ -71,18 +72,18 @@ class MyTrainer:
                 optimizer.step()
                 scheduler.step()
 
+                val_loss, val_recall_k, val_ndcg = evaluator.evaluate(model, val_minibatch, hyper_param, 'val')
+                self.val_losses.append(val_loss)
+                self.val_recall.append(val_recall_k)
+                self.val_ndcg.append(val_ndcg)
+
                 if (batch % 100) == 0:
                     print('Batch {:03}: train loss: {:.4} '.format(batch, loss.item()))
-                    loss, recall_k, ndcg = evaluator.evaluate(model, val_minibatch, hyper_param, 'val')
-                    self.val_losses.append(loss)
-                    self.val_recall.append(recall_k)
-                    self.val_ndcg.append(ndcg)
 
-                    model.train()
-                    if (recall_k >= highest_val_recall):
+                    if (val_recall_k >= highest_val_recall):
                         pbar.write('Batch {:03}: valid loss: {:.4},  valid recall@20: {:.4},  valid ndcg: {:.4}'
-                                   .format(batch, loss, recall_k, ndcg))
-                        highest_val_recall = recall_k
+                                   .format(batch, val_loss, val_recall_k, val_ndcg))
+                        highest_val_recall = val_recall_k
                         inc = 0
                     else:
                         inc += 1
@@ -103,8 +104,8 @@ class MyTrainer:
         # plot graph
         plt.figure(1, figsize=(10, 5))
         plt.title("Training and Validation Loss")
-        plt.plot(self.val_losses, label="val")
         plt.plot(self.train_losses, label="train")
+        plt.plot(self.val_losses, label="val")
         plt.xlabel("iterations")
         plt.ylabel("Loss")
         plt.legend()
