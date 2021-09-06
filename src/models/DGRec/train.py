@@ -18,6 +18,7 @@ class MyTrainer:
         self.val_ndcg = []
 
     def train_with_hyper_param(self, minibatch, hyper_param, val_minibatch=None):
+        seed = hyper_param['seed']
         device = hyper_param['device']
         epochs = hyper_param['epochs']
         learning_rate = hyper_param['learning_rate']
@@ -25,7 +26,7 @@ class MyTrainer:
         model = DGRec(hyper_param, num_layers=2).to(self.device)
         evaluator = MyEvaluator(device=device)
         optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
-        scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=400, gamma=0.5)
+        scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=400, gamma=0.98)
 
         patience = 20
         inc = 0
@@ -40,6 +41,7 @@ class MyTrainer:
         for epoch in pbar:
             minibatch.shuffle()
             for batch in tqdm(range(batch_len), position=1, leave=False, desc='batch'):
+
                 model.train()
                 feed_dict = minibatch.next_train_minibatch_feed_dict()
                 optimizer.zero_grad()
@@ -88,6 +90,7 @@ class MyTrainer:
         plt.xlabel("iterations")
         plt.ylabel("Loss")
         plt.legend()
+        plt.savefig('loss-' + str(seed) + '.png')
 
         plt.figure(2, figsize=(10, 5))
         plt.title("recall@20 and ndcg")
@@ -96,6 +99,7 @@ class MyTrainer:
         plt.xlabel("iterations")
         plt.ylabel("accuracy")
         plt.legend()
-        plt.show()
+        #plt.show()
+        plt.savefig('metric-' + str(seed) + '.png')
 
         return model

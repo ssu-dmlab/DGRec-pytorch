@@ -61,7 +61,8 @@ def run_mymodel(device, data, hyper_param):
 
 
 def main(model='DGRec',
-         seed=123,
+         data_name='musicdata',
+         seed=0,
          epochs=20,
          act='relu',
          batch_size=50,
@@ -72,7 +73,7 @@ def main(model='DGRec',
          samples_1=10,
          samples_2=5,
          dropout=0.2,
-         ckpt_dir='save/'
+         ckpt_dir='save/',
          ):
 
     # Step 0. Initialization
@@ -82,12 +83,11 @@ def main(model='DGRec',
 
     param = dict()
     param['model'] = model
-    param['seed'] = seed
     param['ckpt_dir'] = ckpt_dir
     log_param(param)
 
     # Step 1. Load datasets
-    data_path = '/Users/kimtaesu/PycharmProjects/DGRec-pytorch/datasets/musicdata/'
+    data_path = '/Users/kimtaesu/PycharmProjects/DGRec-pytorch/datasets/Douban/'+data_name
     #logger.info("path of data is:{}".format(data_path))
     MyData = MyDataset(data_path)
     data = MyData.load_data()
@@ -107,6 +107,7 @@ def main(model='DGRec',
     num_users = len(user_id_map)
 
     hyper_param = dict()
+    hyper_param['seed'] = seed
     hyper_param['device'] = device
     hyper_param['epochs'] = epochs
     hyper_param['act'] = act

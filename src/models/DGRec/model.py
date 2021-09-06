@@ -135,9 +135,11 @@ class DGRec(torch.nn.Module):
             if self.feat_drop is not None:
                 friend_emb_seqs = self.feat_drop(friend_emb_seqs)
 
-            short_term1_2, (_, _) = self.lstm(friend_emb_seqs)
+            #short_term1_2, (_, c_n) = self.lstm(friend_emb_seqs)
+            #short_term1_2 = short_term1_2[:, 0, :]  # [, max_length, ] -> [, ]
+            _, (_, short_term1_2) = self.lstm(friend_emb_seqs)
+            short_term1_2 = torch.squeeze(short_term1_2)
 
-            short_term1_2 = short_term1_2[:, 0, :]  # [, max_length, ] -> [, ]
             short_term.append(short_term1_2)
             # short_term[0].shape : [batch_size * sample1 * sample2, embedding_dim]
             # short_term[1].shape : [batch_size * sample2, embedding_dim]

@@ -67,7 +67,7 @@ class MinibatchIterator(object):
         for l in self.latest_sessions:
             timeid = max(loc for loc, val in enumerate(l) if val == 'NULL' and loc < len(l)) + 1
             visible_time.append(timeid)
-            assert timeid > 0 and timeid < len(l), 'Wrong when create visible time {}'.format(timeid)
+            assert timeid > 0 and timeid <= len(l), 'Wrong when create visible time {}'.format(timeid)
         return visible_time
 
     def _remove_infoless(self, data, adj, deg):
