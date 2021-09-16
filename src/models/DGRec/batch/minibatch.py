@@ -14,9 +14,8 @@ class MinibatchIterator(object):
                 latest_sessions,
                 data, # data list, either [train, valid] or [train, valid, test].
                 batch_size,
-                max_degree,
                 num_nodes,
-                max_length=20,
+                max_length,
                 samples_1_2=[10,5],
                 training=True):
         self.num_layers = 2 # Currently, only 2 layer is supported.
@@ -37,7 +36,7 @@ class MinibatchIterator(object):
             'support_lengths_layer2': 'support_lengths_layer2',
         }
         self.batch_size = batch_size
-        self.max_degree = max_degree
+        self.max_degree = 50
         self.num_nodes = num_nodes
         self.max_length = max_length
         self.samples_1_2 = samples_1_2

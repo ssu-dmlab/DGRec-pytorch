@@ -34,34 +34,32 @@ Pytorch implementation model of 'Session-Based Social Recommendation via Dynamic
     * [batch_size * samples_1 * samples_2]
 - support_lengths_layer2 : support_sessions_layer2에서 소비한 item의 갯수
     * [batch_size * samples_2]
+  
+## Arguments
+- 활용된 arguments
+
+|Arguments|Explanation|Default|
+|------|---|---|
+|model|모델이름|'DGRec'|
+|data_name|데이터이름|'bookdata'|
+|seed|seed number|0|
+|epochs|train 반복횟수|20|
+|act|activation function|'relu'|
+|batch_size|size of batch|100|
+|learning_rate|learning rate|0.002|
+|embedding_size|size of item and user embedding|100|
+|max_length|output length|20|
+|samples_1|number of friends|10|
+|samples_2|number of friends' friends|5|
+|dropout|dropout|0.2|
 
 
-## Project structure
-`DGRec-pytorch`는 다음과 같은 구조로 이루어져있다. `DGRec-pytorch` 코드의 세부 내용을 분석할 때는 `main.py`를 시작점으로 해서 살펴보면 된다. 
+## Experiments
+- 원본 코드와 pytorch로 구현한 코드 비교
 
-```shell
-├── READM.md
-├── datasets                        # datasets을 저장하는 폴더
-│   ├── moviedata.zip               # moviedata가 저장되어있는 zip
-│   └── musicdata.zip               # musicdata가 저장되어있는 zip
-└── src                             # source codes를 저장하는 폴더
-    ├── data.py                     # datasets (DataSet, DataLoader) 관련 작업을 처리하는 script
-    ├── main.py                     # 사용자 입력을 처리하는 script
-    ├── models                      # model의 코드를 저장하는 폴더 (여러 모델을 구현한다고 가정)
-    │    ├── __init__.py
-    │    └── DGRec                  # 'DGRec'의 코드를 저장하는 폴더
-    │        ├── batch              # minibatch 구현에 대한 코드를 저장하는 폴더
-    │        │    ├── __init__.py
-    │        │    ├── minibatch.py
-    │        │    └── neign_samplers.py
-    │        ├── __init__.py
-    │        ├── model.py           # DGRec 구현 담당 (주로 forward 함수 구현)
-    │        ├── train.py           # data, hyper_param을 받아 DGRec 훈련 담당 (주로 gradient descent & backprop)
-    │        └── eval.py            # test data에 대해 훈련된 DGRec 평가 담당 (주로 정확도 측정)
-    └── utils.py
-```
+* [ ] 원본 / 구현
 
-
-##Experiments
-
--
+|data|recall@20|ndcg|
+|------|---|---|
+|book data|0.3771 / 0.3619|0.2841 / 0.2911|
+|music data|0.3382 / 0.3431|0.2539 / 0.2939|

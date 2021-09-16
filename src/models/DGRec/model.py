@@ -183,7 +183,7 @@ class DGRec(torch.nn.Module):
                 for hop in range(self.num_layers):
                     neigh_dims = [self.batch_size * support_sizes[hop],
                                   num_samples[self.num_layers - hop - 1],
-                                  100]
+                                  self.embedding_size]
                     h = layer([hidden[hop],
                                torch.reshape(hidden[hop + 1], neigh_dims)])
                     next_hidden.append(h)

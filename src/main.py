@@ -25,7 +25,6 @@ def run_mymodel(device, data, hyper_param):
     test_df = data[6]
 
     batch_size = hyper_param['batch_size']
-    max_degree = hyper_param['max_degree']
     max_length = hyper_param['max_length']
     samples_1 = hyper_param['samples_1']
     samples_2 = hyper_param['samples_2']
@@ -34,7 +33,6 @@ def run_mymodel(device, data, hyper_param):
                                   latest_per_user_by_time,
                                   [train_df, valid_df, test_df],
                                   batch_size=batch_size,
-                                  max_degree=max_degree,
                                   num_nodes=len(user_id_map),
                                   max_length=max_length,
                                   samples_1_2=[samples_1, samples_2])
@@ -43,7 +41,6 @@ def run_mymodel(device, data, hyper_param):
                                   latest_per_user_by_time,
                                   [train_df, valid_df, test_df],
                                   batch_size=batch_size,
-                                  max_degree=max_degree,
                                   num_nodes=len(user_id_map),
                                   max_length=max_length,
                                   samples_1_2=[samples_1, samples_2])
@@ -61,19 +58,17 @@ def run_mymodel(device, data, hyper_param):
 
 
 def main(model='DGRec',
-         data_name='musicdata',
+         data_name='bookdata',
          seed=0,
          epochs=20,
          act='relu',
-         batch_size=50,
-         max_degree=50,
+         batch_size=100,
          learning_rate=0.002,
-         embedding_size=100,
+         embedding_size=200,
          max_length=20,
          samples_1=10,
          samples_2=5,
          dropout=0.2,
-         ckpt_dir='save/',
          ):
 
     # Step 0. Initialization
@@ -83,11 +78,10 @@ def main(model='DGRec',
 
     param = dict()
     param['model'] = model
-    param['ckpt_dir'] = ckpt_dir
     log_param(param)
 
     # Step 1. Load datasets
-    data_path = '/Users/kimtaesu/PycharmProjects/DGRec-pytorch/datasets/musicdata/'
+    data_path = '/Users/kimtaesu/PycharmProjects/DGRec-pytorch/datasets/'+data_name
     #logger.info("path of data is:{}".format(data_path))
     MyData = MyDataset(data_path)
     data = MyData.load_data()
@@ -112,7 +106,6 @@ def main(model='DGRec',
     hyper_param['epochs'] = epochs
     hyper_param['act'] = act
     hyper_param['batch_size'] = batch_size
-    hyper_param['max_degree'] = max_degree
     hyper_param['num_users'] = num_users
     hyper_param['num_items'] = num_items
     hyper_param['learning_rate'] = learning_rate
