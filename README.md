@@ -17,42 +17,37 @@ Pytorch implementation model of 'Session-Based Social Recommendation via Dynamic
 
 |Arguments|Explanation|Default|
 |------|---|---|
-|model|모델이름|'DGRec'|
-|data_name|데이터이름|'bookdata'|
+|model|name of model|'DGRec'|
+|data_name|name of data|'bookdata'|
 |seed|seed number|0|
 |epochs|train 반복횟수|20|
 |act|activation function|'relu'|
 |batch_size|size of batch|100|
-|learning_rate|learning rate|0.002|
+|learning_rate|learning rate of model|0.002|
 |embedding_size|size of item and user embedding|100|
 |max_length|각 user_embedding에 반영 할 수 있는 최대 아이템의 갯수|20|
-|samples_1|number of friends|10|
-|samples_2|number of friends' friends|5|
-|dropout|dropout|0.2|
+|samples_1|number of target user's friends|10|
+|samples_2|number of target user's friends' friends|5|
+|dropout|dropout rate|0.2|
 
 
-## Data
-* [ ] Individual interest
-- Input_x : user가 Timeid(session)에서 소비한 Itemid -학습 데이터
-    * [batch_size, max_length]
-- Input_y : user가 Timeid(session)에서 소비한 Itemid -정답 레이블
-    * [batch_size, max_length]
-- mask_y : input_y에서 소비한 item이 있으면 True, 없으면 False로 나타낸 리스트
-    * [batch_size, max_length]
-* [ ] Friends' interest (long-term)
-- support_nodes_layer1 : friends' friends의 Userid
-    * [batch_size * samples_1 * samples_2]
-- support_nodes_layer2 : user와 연결되어있는 friends의 Userid
-    * [batch_size * samples_2]
-* [ ] Friends' interest (short-term)
-- support_sessions_layer1 : friends' friends가 가장 최근 Timeid에서 소비한 Itemid
-    * [batch_size * samples_1 * samples_2]
-- support_sessions_layer2 : user와 연결되어있는 friends가 가장 최근 Timeid에서 소비한 Itemid
-    * [batch_size * samples_2]
-- support_lengths_layer1 : support_sessions_layer1에서 소비한 item의 갯수
-    * [batch_size * samples_1 * samples_2]
-- support_lengths_layer2 : support_sessions_layer2에서 소비한 item의 갯수
-    * [batch_size * samples_2]
+## Data Explanation
+### Input data:
+* train.tsv: includes user historical behaviors, which is organized by pandas.Dataframe in five fields (SessionId UserId ItemId Timestamps TimeId).
+* valid.tsv: the same format as train.tsv, used for tuning hyperparameters.
+* test.tsv: the same format as test.tsv, used for testing model.
+* adj.tsv: includes links between users, which is also organized by pandas.Dataframe in two fields (FromId, ToId).
+* latest_session.tsv: serves as 'reference' to target user. This file records all users available session at each time slot. For example, at time slot t, it stores user u's t-1 th session.
+* user_id_map.tsv: maps original string user id to int.
+* item_id_map.tsv: maps original string item id to int.
+
+### Douban data:
+The statistics of Douban datasets are summarized as follows:
+
+|Dataset|#user|#item|#event|
+|------|---|---|---|
+|DoubanMusic|39,742|164,223|1,792,501|
+|DoubanBook|46,548|212,995|1.908.081|
 
 ## Experiments
 - 원본 코드와 pytorch로 구현한 코드 비교

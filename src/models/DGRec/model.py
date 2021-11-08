@@ -205,6 +205,30 @@ class DGRec(torch.nn.Module):
         return logits
 
     def forward(self, feed_dict, labels):
+        '''
+        * Individual interest
+            - Input_x: user가 Timeid(session) 에서 소비한 Itemid - 학습데이터
+                [batch_size, max_length]
+            - Input_y: user가 Timeid(session) 에서 소비한 Itemid - 정답레이블
+                [batch_size, max_length]
+            - mask_y: input_y에서 소비한 item이 있으면 True, 없으면 False로 나타낸 리스트
+                [batch_size, max_length]
+        * Friends' interest (long-term)
+            - support_nodes_layer1: friends' friends의 Userid
+                [batch_size * samples_1 * samples_2]
+            - support_nodes_layer2: user와 연결되어있는 friends의 Userid
+                [batch_size * samples_2]
+        * Friends' interest (short-term)
+            - support_sessions_layer1: friends' friends가 가장 최근 Timeid에서 소비한 Itemid
+                [batch_size * samples_1 * samples_2]
+            - support_sessions_layer2: user와 연결되어있는 friends가 가장 최근 Timeid에서 소비한 Itemid
+                [batch_size * samples_2]
+            - support_lengths_layer1: support_sessions_layer1에서 소비한 item의 갯수
+                [batch_size * samples_1 * samples_2]
+            - support_lengths_layer2: support_sessions_layer2에서 소비한 item의 갯수
+                [batch_size * samples_2]
+        '''
+
         logits = self.score(feed_dict)
 
         logits = torch.swapaxes(logits, 1, 2)
