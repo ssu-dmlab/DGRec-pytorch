@@ -178,16 +178,17 @@ class DGRec(torch.nn.Module):
         num_samples = [self.samples_1, self.samples_2]
         for i in range(self.max_length):
             hu_ = hu[i]  # implement 1 of 20
-            for layer in self.layers:
-                hidden = [hu_, long_short_term[0], long_short_term[1]]
-                for hop in range(self.num_layers):
+            hidden = [hu_, long_short_term[0], long_short_term[1]]
+            for layer, j in zip(self.layers, range(2)):
+                for hop in range(self.num_layers - j):
                     neigh_dims = [self.batch_size * support_sizes[hop],
                                   num_samples[self.num_layers - hop - 1],
                                   self.embedding_size]
                     h = layer([hidden[hop],
                                torch.reshape(hidden[hop + 1], neigh_dims)])
                     next_hidden.append(h)
-            outputs.append(next_hidden[0])
+                hidden = next_hidden
+            outputs.append(hidden[0])
         feat = torch.stack(outputs, axis=0)
         # hu.shape, feat.shape : [max_length, batch, embedding_size]
 
