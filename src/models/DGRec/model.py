@@ -197,9 +197,6 @@ class DGRec(torch.nn.Module):
         # return : [batch, max_length, item_embedding]
         return sr
 
-    def item_modeling(self):
-        pass
-
     def score(self, sr, feed_dict):
         logits = sr @ self.item_embedding(self.item_indices).t()  # prediction
         # logit shape : [max_length, batch, item_embedding]
@@ -242,7 +239,6 @@ class DGRec(torch.nn.Module):
                                                 feed_dict['support_sessions_layer2'])
 
         sr = self.social_influence(hu, long_short_term)
-        self.item_modeling()
 
         logits = self.score(sr, feed_dict)
 
@@ -265,7 +261,6 @@ class DGRec(torch.nn.Module):
                                                 feed_dict['support_sessions_layer2'])
 
         sr = self.social_influence(hu, long_short_term)
-        self.item_modeling()
 
         logits = self.score(sr, feed_dict)
 
