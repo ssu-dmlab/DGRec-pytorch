@@ -24,7 +24,7 @@ Pytorch implementation model of 'Session-Based Social Recommendation via Dynamic
 |batch_size|size of batch|100|
 |learning_rate|learning rate of model|0.002|
 |embedding_size|size of item and user embedding|100|
-|max_length|max item count of reflected in each user_embedding|20|
+|max_length|max item count reflected in each user_embedding|20|
 |samples_1|number of target user's friends|10|
 |samples_2|number of target user's friends' friends|5|
 |dropout|dropout rate|0.2|
