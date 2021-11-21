@@ -13,19 +13,18 @@ Pytorch implementation model of 'Session-Based Social Recommendation via Dynamic
 
   
 ## Arguments
-- 활용된 arguments
 
 |Arguments|Explanation|Default|
 |------|---|---|
 |model|name of model|'DGRec'|
 |data_name|name of data|'bookdata'|
 |seed|seed number|0|
-|epochs|train 반복횟수|20|
+|epochs|# of train |20|
 |act|activation function|'relu'|
 |batch_size|size of batch|100|
 |learning_rate|learning rate of model|0.002|
 |embedding_size|size of item and user embedding|100|
-|max_length|각 user_embedding에 반영 할 수 있는 최대 아이템의 갯수|20|
+|max_length|max item count of reflected each user_embedding|20|
 |samples_1|number of target user's friends|10|
 |samples_2|number of target user's friends' friends|5|
 |dropout|dropout rate|0.2|
@@ -50,14 +49,28 @@ The statistics of Douban datasets are summarized as follows:
 |DoubanBook|46,548|212,995|1.908.081|
 
 ## Experiments
-- 원본 코드와 pytorch로 구현한 코드 비교
 
-* [ ] 원본 / 구현
+
+* [ ] tensorflow(original)
 
 |data|recall@20|ndcg|
 |------|---|---|
-|book data|0.3771 / 0.3619|0.2841 / 0.2911|
-|music data|0.3382 / 0.3431|0.2539 / 0.2939|
+|book data|0.3771 |0.2841|
+|music data|0.3382|0.2539|
+
+* [ ] pytorch(implemented)
+
+|data|recall@20|ndcg|
+|------|---|---|
+|book data|0.3619|0.2911|
+|music data|0.3431|0.2939|
+
+- std deviation of implemented code
+
+|data|recall@20|ndcg|
+|------|---|---|
+|book data|0.0216|0.0059|
+|music data|0.0225|0.0095|
 
  ## References
  [1] Song, W., Xiao, Z., Wang, Y., Charlin, L., Zhang, M., & Tang, J. (2019, January). Session-based social recommendation via dynamic graph attention networks. In Proceedings of the Twelfth ACM international conference on web search and data mining (pp. 555-563).
