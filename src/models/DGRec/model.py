@@ -36,8 +36,8 @@ class GAT(nn.Module):
             neigh_vecs = self.feat_drop(neigh_vecs)
 
         # Reshape from [batch_size, depth] to [batch_size, 1, depth] for matmul.
-        query = torch.unsqueeze(self_vecs, 1) # [batch, 1, embedding_size]
-        neigh_self_vecs = torch.cat((neigh_vecs, query), dim=1) # [batch, sample, embedding]
+        query = torch.unsqueeze(self_vecs, 1)  # [batch, 1, embedding_size]
+        neigh_self_vecs = torch.cat((neigh_vecs, query), dim=1)  # [batch, sample, embedding]
         score = torch.matmul(query, torch.transpose(neigh_self_vecs, 1, 2))
         score = self.m(score)
 
@@ -94,6 +94,9 @@ class DGRec(torch.nn.Module):
         self.W2 = nn.Linear(input_dim + self.embedding_size, self.embedding_size, bias=False)
         self.W2.weight = torch.nn.init.xavier_uniform_(self.W2.weight)
 
+        self.W3 = nn.Linear(self.embedding_size, self.embedding_size, bias=False)
+        self.W3.weight = torch.nn.init.xavier_uniform_(self.W3.weight)
+
     def individual_interest(self, input_session):
         input = torch.LongTensor(input_session[0])  # input.shape : [max_length]
         emb_seqs = self.item_embedding(input)  # emb_seqs.shape : [max_length, embedding_dim]
@@ -112,7 +115,9 @@ class DGRec(torch.nn.Module):
 
         return hu
 
-    def friends_interest(self, support_nodes_layer1, support_nodes_layer2, support_sessions_layer1, support_sessions_layer2):
+    def friends_interest(self, support_nodes_layer1, support_nodes_layer2, support_sessions_layer1,
+                         support_sessions_layer2):
+
         long_term = []
         support_nodes_layer = [support_nodes_layer1, support_nodes_layer2]
 
@@ -135,8 +140,6 @@ class DGRec(torch.nn.Module):
             if self.feat_drop is not None:
                 friend_emb_seqs = self.feat_drop(friend_emb_seqs)
 
-            #short_term1_2, (_, c_n) = self.lstm(friend_emb_seqs)
-            #short_term1_2 = short_term1_2[:, 0, :]  # [, max_length, ] -> [, ]
             _, (_, short_term1_2) = self.lstm(friend_emb_seqs)
             short_term1_2 = torch.squeeze(short_term1_2)
 
@@ -161,26 +164,22 @@ class DGRec(torch.nn.Module):
         long_short_term = [long_short_term2, long_short_term1]
 
         return long_short_term
+        # return short_term
 
-    def score(self, feed_dict):
-        hu = self.individual_interest(feed_dict['input_session'])
-
-        long_short_term = self.friends_interest(feed_dict['support_nodes_layer1'],
-                                                feed_dict['support_nodes_layer2'],
-                                                feed_dict['support_sessions_layer1'],
-                                                feed_dict['support_sessions_layer2'])
-
+    def social_influence(self, hu, long_short_term):
         # GAT
         hu = torch.swapaxes(hu, 0, 1)
         outputs = []
-        next_hidden = []
         support_sizes = [1, self.samples_2, self.samples_1 * self.samples_2]
         num_samples = [self.samples_1, self.samples_2]
         for i in range(self.max_length):
+            count = 0
             hu_ = hu[i]  # implement 1 of 20
             hidden = [hu_, long_short_term[0], long_short_term[1]]
-            for layer, j in zip(self.layers, range(2)):
-                for hop in range(self.num_layers - j):
+            for layer in self.layers:
+                next_hidden = []
+                for hop in range(self.num_layers - count):
+                    # print("# of hop : ", hop) 0->1->0
                     neigh_dims = [self.batch_size * support_sizes[hop],
                                   num_samples[self.num_layers - hop - 1],
                                   self.embedding_size]
@@ -188,12 +187,20 @@ class DGRec(torch.nn.Module):
                                torch.reshape(hidden[hop + 1], neigh_dims)])
                     next_hidden.append(h)
                 hidden = next_hidden
+                count += 1
             outputs.append(hidden[0])
         feat = torch.stack(outputs, axis=0)
         # hu.shape, feat.shape : [max_length, batch, embedding_size]
 
         sr = self.W2(torch.cat((hu, feat), dim=2))  # final representation
 
+        # return : [batch, max_length, item_embedding]
+        return sr
+
+    def item_modeling(self):
+        pass
+
+    def score(self, sr, feed_dict):
         logits = sr @ self.item_embedding(self.item_indices).t()  # prediction
         # logit shape : [max_length, batch, item_embedding]
 
@@ -201,7 +208,6 @@ class DGRec(torch.nn.Module):
         logits = torch.swapaxes(logits, 0, 1)
         logits *= torch.unsqueeze(mask, 2)
 
-        # return : [batch, max_length, item_embedding]
         return logits
 
     def forward(self, feed_dict, labels):
@@ -228,8 +234,17 @@ class DGRec(torch.nn.Module):
             - support_lengths_layer2: support_sessions_layer2에서 소비한 item의 갯수
                 [batch_size * samples_2]
         '''
+        hu = self.individual_interest(feed_dict['input_session'])
 
-        logits = self.score(feed_dict)
+        long_short_term = self.friends_interest(feed_dict['support_nodes_layer1'],
+                                                feed_dict['support_nodes_layer2'],
+                                                feed_dict['support_sessions_layer1'],
+                                                feed_dict['support_sessions_layer2'])
+
+        sr = self.social_influence(hu, long_short_term)
+        self.item_modeling()
+
+        logits = self.score(sr, feed_dict)
 
         logits = torch.swapaxes(logits, 1, 2)
         logits = logits.to(dtype=torch.float)
@@ -242,5 +257,16 @@ class DGRec(torch.nn.Module):
         return loss
 
     def predict(self, feed_dict):
-        logits = self.score(feed_dict)
+        hu = self.individual_interest(feed_dict['input_session'])
+
+        long_short_term = self.friends_interest(feed_dict['support_nodes_layer1'],
+                                                feed_dict['support_nodes_layer2'],
+                                                feed_dict['support_sessions_layer1'],
+                                                feed_dict['support_sessions_layer2'])
+
+        sr = self.social_influence(hu, long_short_term)
+        self.item_modeling()
+
+        logits = self.score(sr, feed_dict)
+
         return logits
