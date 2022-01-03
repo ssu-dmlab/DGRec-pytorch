@@ -14,19 +14,12 @@ class GAT(nn.Module):
     def __init__(self, input_dim, output_dim, dropout=0., bias=False, act=nn.ReLU(), **kwargs):
         super().__init__()
 
-        self.bias = bias
         self.act = act
-
-        self.vars = {}
-        self.vars['weights'] = glorot([input_dim, output_dim])
-
-        if self.bias:
-            self.vars['bias'] = zeros([output_dim])
 
         self.feat_drop = nn.Dropout(dropout) if dropout > 0 else None
         self.fc = nn.Linear(input_dim, output_dim, bias=True)
         self.fc.weight = torch.nn.init.xavier_uniform_(self.fc.weight)
-        self.m = nn.Softmax(dim=-1)
+        self.softmax = nn.Softmax(dim=-1)
 
     def forward(self, inputs):
         self_vecs, neigh_vecs = inputs
@@ -36,19 +29,18 @@ class GAT(nn.Module):
             neigh_vecs = self.feat_drop(neigh_vecs)
 
         # Reshape from [batch_size, depth] to [batch_size, 1, depth] for matmul.
-        query = torch.unsqueeze(self_vecs, 1)  # [batch, 1, embedding_size]
-        neigh_self_vecs = torch.cat((neigh_vecs, query), dim=1)  # [batch, sample, embedding]
-        score = torch.matmul(query, torch.transpose(neigh_self_vecs, 1, 2))
-        score = self.m(score)
+        self_vecs = torch.unsqueeze(self_vecs, 1)  # [batch, 1, embedding_size]
+        neigh_self_vecs = torch.cat((neigh_vecs, self_vecs), dim=1)  # [batch, sample, embedding]
+
+        score = self.softmax(torch.matmul(self_vecs, torch.transpose(neigh_self_vecs, 1, 2)))
 
         # alignment(score) shape is [batch_size, 1, depth]
-        context = torch.matmul(score, neigh_self_vecs)
-        context = torch.squeeze(context, dim=1)
+        context = torch.squeeze(torch.matmul(score, neigh_self_vecs), dim=1)
 
         # [nodes] x [out_dim]
-        output = torch.matmul(context, self.vars['weights'])
+        output = self.act(self.fc(context))
 
-        return self.act(output)
+        return output
 
 
 class DGRec(torch.nn.Module):
@@ -73,6 +65,7 @@ class DGRec(torch.nn.Module):
             self.act = nn.ReLU()
         elif self.act == 'elu':
             self.act = nn.ELU()
+
         self.user_embedding = nn.Embedding(self.num_users,
                                            self.embedding_size)  # (num_users=26511, embedding_dim=100)
         self.item_embedding = nn.Embedding(self.num_items,
@@ -80,23 +73,28 @@ class DGRec(torch.nn.Module):
                                            padding_idx=0)  # (num_items=12592, embedding_dim=100)
         self.item_indices = nn.Parameter(torch.arange(0, self.num_items, dtype=torch.long),
                                          requires_grad=False)
+
         self.feat_drop = nn.Dropout(self.dropout) if self.dropout > 0 else None
+        input_dim = self.embedding_size
+
+        # making user embedding
         self.lstm = nn.LSTM(self.embedding_size, self.embedding_size, batch_first=True)
+
+        # combine friend's long and short-term interest
         self.W1 = nn.Linear(2 * self.embedding_size, self.embedding_size, bias=False)
         self.W1.weight = torch.nn.init.xavier_uniform_(self.W1.weight)
 
+        # combine user interest and social influence
+        self.W2 = nn.Linear(input_dim + self.embedding_size, self.embedding_size, bias=False)
+        self.W2.weight = torch.nn.init.xavier_uniform_(self.W2.weight)
+
+        # making GAT layers
         self.layers = nn.ModuleList()
-        input_dim = self.embedding_size
         for layer in range(num_layers):
             aggregator = GAT(input_dim, input_dim, act=self.act, dropout=self.dropout)
             self.layers.append(aggregator)
 
-        self.W2 = nn.Linear(input_dim + self.embedding_size, self.embedding_size, bias=False)
-        self.W2.weight = torch.nn.init.xavier_uniform_(self.W2.weight)
-
-        self.W3 = nn.Linear(self.embedding_size, self.embedding_size, bias=False)
-        self.W3.weight = torch.nn.init.xavier_uniform_(self.W3.weight)
-
+    # get target user's interest
     def individual_interest(self, input_session):
         input = torch.LongTensor(input_session[0])  # input.shape : [max_length]
         emb_seqs = self.item_embedding(input)  # emb_seqs.shape : [max_length, embedding_dim]
@@ -115,9 +113,10 @@ class DGRec(torch.nn.Module):
 
         return hu
 
+    # get friends' interest
     def friends_interest(self, support_nodes_layer1, support_nodes_layer2, support_sessions_layer1,
                          support_sessions_layer2):
-
+        ''' long term '''
         long_term = []
         support_nodes_layer = [support_nodes_layer1, support_nodes_layer2]
 
@@ -128,6 +127,7 @@ class DGRec(torch.nn.Module):
             # long_term[0].shape : [sample1 * sample2, embedding_dim]
             # long_term[1].shape : [sample2, embedding_dim]
 
+        ''' short term '''
         short_term = []
         support_sessions_layer = [support_sessions_layer1, support_sessions_layer2]
         sample1_2 = [self.samples_1 * self.samples_2, self.samples_2]
@@ -147,6 +147,7 @@ class DGRec(torch.nn.Module):
             # short_term[0].shape : [batch_size * sample1 * sample2, embedding_dim]
             # short_term[1].shape : [batch_size * sample2, embedding_dim]
 
+        ''' long-short term'''
         long_short_term1 = torch.cat((long_term[0], short_term[0]), dim=1)
         long_short_term2 = torch.cat((long_term[1], short_term[1]), dim=1)
         # long_short_term1.shape : [batch_size * sample1 * sample2, embedding_dim + embedding_dim]
@@ -164,31 +165,26 @@ class DGRec(torch.nn.Module):
         long_short_term = [long_short_term2, long_short_term1]
 
         return long_short_term
-        # return short_term
 
+    # get user's interest influenced by friends
     def social_influence(self, hu, long_short_term):
-        # GAT
         hu = torch.swapaxes(hu, 0, 1)
         outputs = []
+        next_hidden = []
         support_sizes = [1, self.samples_2, self.samples_1 * self.samples_2]
         num_samples = [self.samples_1, self.samples_2]
         for i in range(self.max_length):
-            count = 0
             hu_ = hu[i]  # implement 1 of 20
-            hidden = [hu_, long_short_term[0], long_short_term[1]]
             for layer in self.layers:
-                next_hidden = []
-                for hop in range(self.num_layers - count):
-                    # print("# of hop : ", hop) 0->1->0
+                hidden = [hu_, long_short_term[0], long_short_term[1]]
+                for hop in range(self.num_layers):
                     neigh_dims = [self.batch_size * support_sizes[hop],
                                   num_samples[self.num_layers - hop - 1],
                                   self.embedding_size]
                     h = layer([hidden[hop],
                                torch.reshape(hidden[hop + 1], neigh_dims)])
                     next_hidden.append(h)
-                hidden = next_hidden
-                count += 1
-            outputs.append(hidden[0])
+            outputs.append(next_hidden[0])
         feat = torch.stack(outputs, axis=0)
         # hu.shape, feat.shape : [max_length, batch, embedding_size]
 
@@ -197,11 +193,12 @@ class DGRec(torch.nn.Module):
         # return : [batch, max_length, item_embedding]
         return sr
 
-    def score(self, sr, feed_dict):
-        logits = sr @ self.item_embedding(self.item_indices).t()  # prediction
+    # get item score
+    def score(self, sr, mask_y):
+        logits = sr @ self.item_embedding(self.item_indices).t()  # similarity
         # logit shape : [max_length, batch, item_embedding]
 
-        mask = torch.LongTensor(feed_dict['mask_y'])
+        mask = torch.LongTensor(mask_y)
         logits = torch.swapaxes(logits, 0, 1)
         logits *= torch.unsqueeze(mask, 2)
 
@@ -231,6 +228,7 @@ class DGRec(torch.nn.Module):
             - support_lengths_layer2: support_sessions_layer2에서 소비한 item의 갯수
                 [batch_size * samples_2]
         '''
+        # interest
         hu = self.individual_interest(feed_dict['input_session'])
 
         long_short_term = self.friends_interest(feed_dict['support_nodes_layer1'],
@@ -238,15 +236,14 @@ class DGRec(torch.nn.Module):
                                                 feed_dict['support_sessions_layer1'],
                                                 feed_dict['support_sessions_layer2'])
 
+        # social influence
         sr = self.social_influence(hu, long_short_term)
 
-        logits = self.score(sr, feed_dict)
+        # score
+        logits = self.score(sr, feed_dict['mask_y'])
 
-        logits = torch.swapaxes(logits, 1, 2)
-        logits = logits.to(dtype=torch.float)
-        # logits : [batch, item_embedding, max_length]
-        labels = torch.tensor(np.array(labels), dtype=torch.long)
-        # labels : [batch, max_length]
+        logits = (torch.swapaxes(logits, 1, 2)).to(dtype=torch.float)   # logits : [batch, item_embedding, max_length]
+        labels = torch.tensor(np.array(labels), dtype=torch.long)   # labels : [batch, max_length]
 
         loss = F.cross_entropy(logits, labels)
 
@@ -262,6 +259,6 @@ class DGRec(torch.nn.Module):
 
         sr = self.social_influence(hu, long_short_term)
 
-        logits = self.score(sr, feed_dict)
+        logits = self.score(sr, feed_dict['mask_y'])
 
         return logits
