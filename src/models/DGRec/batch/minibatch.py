@@ -286,7 +286,7 @@ class MinibatchIterator(object):
         '''
         return self.batch_num * self.batch_size > len(self.train_session_ids) - self.batch_size
 
-    def end_val(self, val_or_test='val'):
+    def end_val(self, val_or_test='test'):
         '''
         ' Indicate whether we finish a pass over all testing or evaluation samples.
         '''
@@ -314,5 +314,12 @@ class MinibatchIterator(object):
         '''
         self.train_session_ids = np.random.permutation(self.train_session_ids)
         self.batch_num = 0
+        self.batch_num_val = 0
+        self.batch_num_test = 0
+
+    def val_shuffle(self):
+        '''
+        Shuffle validation data.
+        '''
         self.batch_num_val = 0
         self.batch_num_test = 0

@@ -16,7 +16,7 @@ class MyEvaluator:
         with torch.no_grad():
             model.eval()
 
-            minibatch.shuffle()
+            minibatch.val_shuffle()
             feed_dict = minibatch.next_val_minibatch_feed_dict(mode)
 
             # evaluation

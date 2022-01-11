@@ -37,7 +37,7 @@ def run_mymodel(device, data, hyper_param):
                                   max_length=max_length,
                                   device=device,
                                   samples_1_2=[samples_1, samples_2])
-
+    '''
     val_minibatch = MinibatchIterator(adj_info,
                                   latest_per_user_by_time,
                                   [train_df, valid_df, test_df],
@@ -46,15 +46,18 @@ def run_mymodel(device, data, hyper_param):
                                   max_length=max_length,
                                   device=device,
                                   samples_1_2=[samples_1, samples_2])
-
+    '''
     trainer = MyTrainer(device=device)
 
+    '''
     model = trainer.train_with_hyper_param(minibatch=minibatch,
                                            hyper_param=hyper_param,
-                                           val_minibatch=val_minibatch)
+                                           val_minibatch=val_minibatch)'''
+    model = trainer.train_with_hyper_param(minibatch=minibatch,
+                                           hyper_param=hyper_param)
 
     evaluator = MyEvaluator(device=device)
-    loss, recall_k, ndcg = evaluator.evaluate(model, minibatch, mode='test')
+    loss, recall_k, ndcg = evaluator.evaluate(model, minibatch)
 
     return loss, recall_k, ndcg
 

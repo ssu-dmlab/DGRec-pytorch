@@ -19,11 +19,8 @@ class MyTrainer:
         self.val_recall = []
         self.val_ndcg = []
 
-        total_loss = 0
-        total_recall = 0
-        total_ndcg = 0
-
-    def train_with_hyper_param(self, minibatch, hyper_param, val_minibatch=None):
+    #def train_with_hyper_param(self, minibatch, hyper_param, val_minibatch=None):
+    def train_with_hyper_param(self, minibatch, hyper_param):
         seed = hyper_param['seed']
         epochs = hyper_param['epochs']
         learning_rate = hyper_param['learning_rate']
@@ -71,7 +68,7 @@ class MyTrainer:
                 self.train_ndcg.append(ndcg.item())
 
                 # validation
-                val_loss, val_recall_k, val_ndcg = evaluator.evaluate(model, val_minibatch, 'val')
+                val_loss, val_recall_k, val_ndcg = evaluator.evaluate(model, minibatch, mode='val')
 
                 self.val_losses.append(val_loss)
                 self.val_recall.append(val_recall_k)
