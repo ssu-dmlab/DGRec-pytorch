@@ -19,6 +19,10 @@ class MyTrainer:
         self.val_recall = []
         self.val_ndcg = []
 
+        total_loss = 0
+        total_recall = 0
+        total_ndcg = 0
+
     def train_with_hyper_param(self, minibatch, hyper_param, val_minibatch=None):
         seed = hyper_param['seed']
         epochs = hyper_param['epochs']
@@ -39,7 +43,12 @@ class MyTrainer:
         pbar = tqdm(range(epochs), position=0, leave=False, desc='epoch')
 
         for epoch in pbar:
+            total_loss = 0
+            total_recall = 0
+            total_ndcg = 0
+
             minibatch.shuffle()
+
             for batch in tqdm(range(batch_len), position=1, leave=False, desc='batch'):
                 model.train()
                 optimizer.zero_grad()
@@ -52,6 +61,10 @@ class MyTrainer:
                 loss.backward()
                 optimizer.step()
                 scheduler.step()
+
+                total_loss += loss.item()
+                total_recall += recall_k.item()
+                total_ndcg += ndcg.item()
 
                 self.train_losses.append(loss.item())
                 self.train_recall.append(recall_k.item())
@@ -76,15 +89,15 @@ class MyTrainer:
                     break
 
             if early_stopping:
-                print('Early stop at epoch: {}, batch steps: {}'.format(epoch, batch))
+                print('Early stop at epoch: {}, batch steps: {}'.format(epoch+1, batch))
                 break
 
             pbar.write(
                 'Epoch {:02}: training loss: {:.4},  training recall@20: {:.4},  training NDCG: {:.4}'
-                .format(epoch, loss, recall_k, ndcg))
+                .format(epoch+1, total_loss/batch_len, total_recall/batch_len, total_ndcg/batch_len))
             pbar.write(
                 'Epoch {:02}: valid loss: {:.4},  valid recall@20: {:.4},  valid NDCG: {:.4}'
-                .format(epoch, val_loss, val_recall_k, val_ndcg))
+                .format(epoch+1, val_loss, val_recall_k, val_ndcg))
             pbar.update()
 
         pbar.close()
