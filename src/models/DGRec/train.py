@@ -19,7 +19,6 @@ class MyTrainer:
         self.val_recall = []
         self.val_ndcg = []
 
-    #def train_with_hyper_param(self, minibatch, hyper_param, val_minibatch=None):
     def train_with_hyper_param(self, minibatch, hyper_param):
         seed = hyper_param['seed']
         epochs = hyper_param['epochs']

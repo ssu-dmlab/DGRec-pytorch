@@ -37,22 +37,9 @@ def run_mymodel(device, data, hyper_param):
                                   max_length=max_length,
                                   device=device,
                                   samples_1_2=[samples_1, samples_2])
-    '''
-    val_minibatch = MinibatchIterator(adj_info,
-                                  latest_per_user_by_time,
-                                  [train_df, valid_df, test_df],
-                                  batch_size=batch_size,
-                                  num_nodes=len(user_id_map),
-                                  max_length=max_length,
-                                  device=device,
-                                  samples_1_2=[samples_1, samples_2])
-    '''
+
     trainer = MyTrainer(device=device)
 
-    '''
-    model = trainer.train_with_hyper_param(minibatch=minibatch,
-                                           hyper_param=hyper_param,
-                                           val_minibatch=val_minibatch)'''
     model = trainer.train_with_hyper_param(minibatch=minibatch,
                                            hyper_param=hyper_param)
 
