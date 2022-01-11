@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import sys
+import torch
 sys.path.append("../..") # Adds higher directory to python modules path.
 
 from models.DGRec.batch.neigh_samplers import UniformNeighborSampler
@@ -17,12 +18,14 @@ class MinibatchIterator(object):
                 num_nodes,
                 max_length,
                 samples_1_2=[10,5],
+                device='cpu',
                 training=True):
         self.num_layers = 2 # Currently, only 2 layer is supported.
         self.adj_info = adj_info
         self.latest_sessions = latest_sessions
         self.training = training
         self.train_df, self.valid_df, self.test_df = data
+        self.device = device
         self.all_data = pd.concat(data)
         self.placeholders={
             'input_x': 'input_session',
@@ -123,7 +126,7 @@ class MinibatchIterator(object):
         '''
         Construct batch inputs.
         '''
-        #initialize
+        # initialize
         current_batch_sess_ids, samples, support_sizes = current_batch
         feed_dict = {}
         input_x = []
@@ -131,9 +134,8 @@ class MinibatchIterator(object):
         mask_y = []
         timeids = []
 
-        #input_x / input_y / mask_y
+        # input_x / input_y / mask_y
         for sessid in current_batch_sess_ids:
-
             nodeid, timeid = sessid.split('_')
             timeids.append(int(timeid))
             x, y, _ = self.padded_data[sessid]
@@ -141,31 +143,16 @@ class MinibatchIterator(object):
             input_x.append(x)
             input_y.append(y)
             mask_y.append(mask)
-            '''
-            print("sessid :", sessid)
-            print("timeid :", timeid)
-            
-            print("x :", x)
-            print("y :", y)
-            print("mask :", mask)
-            '''
-        feed_dict.update({self.placeholders['input_x']: input_x})
-        feed_dict.update({self.placeholders['input_y']: input_y})
-        feed_dict.update({self.placeholders['mask_y']: mask_y})
-        #print("input_x's length :", len(input_x))
-        #print("input_y's length :", len(input_y))
-        #print("mask_y's length :", len(mask_y))
 
+        feed_dict.update({self.placeholders['input_x']: torch.tensor(input_x).to(self.device)})
+        feed_dict.update({self.placeholders['input_y']: torch.tensor(input_y).to(self.device)})
+        feed_dict.update({self.placeholders['mask_y']: torch.tensor(mask_y).to(self.device)})
 
-        #support nodes layer1 / 2
-        #print("samples[1] :", samples[1])
-        #print("samples[2] :", samples[2])
-        feed_dict.update({self.placeholders['support_nodes_layer1']: samples[2]})
-        feed_dict.update({self.placeholders['support_nodes_layer2']: samples[1]})
-        #print("samples[1]'s length :", samples[1])
-        #print("samples[2]'s length :", samples[2])
+        # support nodes layer1 / 2
+        feed_dict.update({self.placeholders['support_nodes_layer1']: torch.tensor(samples[2]).to(self.device)})
+        feed_dict.update({self.placeholders['support_nodes_layer2']: torch.tensor(samples[1]).to(self.device)})
 
-        #prepare supportive user's recent sessions.
+        # prepare supportive user's recent sessions.
         support_layers_session = []
         support_layers_length = []
         for layer in range(self.num_layers):
@@ -178,10 +165,7 @@ class MinibatchIterator(object):
                 support_nodes = samples[t][start: start + support_sizes[t]]
                 for support_node in support_nodes:
                     support_session_id = str(self.latest_sessions[support_node][timeid])
-                    #print("support_node :", support_node, "time_id :", timeid)
-                    #print("latest_session :", support_session_id)
                     support_session = self.padded_data[support_session_id][2]
-                    #print("support_session :", support_session)
                     length = np.count_nonzero(support_session)
                     support_sessions.append(support_session)
                     support_lengths.append(length)
@@ -191,12 +175,16 @@ class MinibatchIterator(object):
             support_layers_session.append(support_sessions)
             support_layers_length.append(support_lengths)
 
-        feed_dict.update({self.placeholders['support_sessions_layer1']:support_layers_session[0]})
-        feed_dict.update({self.placeholders['support_sessions_layer2']:support_layers_session[1]})
-        feed_dict.update({self.placeholders['support_lengths_layer1']:support_layers_length[0]})
-        feed_dict.update({self.placeholders['support_lengths_layer2']:support_layers_length[1]})
+        feed_dict.update(
+            {self.placeholders['support_sessions_layer1']: torch.tensor(support_layers_session[0]).to(self.device)})
+        feed_dict.update(
+            {self.placeholders['support_sessions_layer2']: torch.tensor(support_layers_session[1]).to(self.device)})
+        feed_dict.update(
+            {self.placeholders['support_lengths_layer1']: torch.tensor(support_layers_length[0]).to(self.device)})
+        feed_dict.update(
+            {self.placeholders['support_lengths_layer2']: torch.tensor(support_layers_length[1]).to(self.device)})
 
-        return feed_dict 
+        return feed_dict
 
     def sample(self, nodeids, timeids, sampler):
         '''
@@ -317,7 +305,8 @@ class MinibatchIterator(object):
         return end
 
     def train_batch_len(self):
-        return (len(self.train_session_ids) - self.batch_size) / self.batch_size
+        batch_len = (len(self.train_session_ids) - self.batch_size) / self.batch_size
+        return int(batch_len)
 
     def shuffle(self):
         '''

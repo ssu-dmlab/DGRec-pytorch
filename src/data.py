@@ -1,10 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import torchvision
 import numpy as np
 import pandas as pd
-import random
 from torch.utils.data import Dataset
 
 

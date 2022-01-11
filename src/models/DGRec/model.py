@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 import numpy as np
 import torch
 from torch import nn
@@ -47,7 +46,7 @@ class DGRec(torch.nn.Module):
     def __init__(
             self,
             hyper_param,
-            num_layers
+            num_layers,
     ):
         super(DGRec, self).__init__()
         self.act = hyper_param['act']
@@ -96,7 +95,7 @@ class DGRec(torch.nn.Module):
 
     # get target user's interest
     def individual_interest(self, input_session):
-        input = torch.LongTensor(input_session[0])  # input.shape : [max_length]
+        input = input_session[0].long()  # input.shape : [max_length]
         emb_seqs = self.item_embedding(input)  # emb_seqs.shape : [max_length, embedding_dim]
         emb_seqs = torch.unsqueeze(emb_seqs, 0)
 
@@ -104,7 +103,7 @@ class DGRec(torch.nn.Module):
             emb_seqs = self.feat_drop(emb_seqs)
 
         for batch in range(self.batch_size - 1):
-            input = torch.LongTensor(input_session[batch + 1])
+            input = input_session[batch + 1].long()
             emb_seq = self.item_embedding(input)
             emb_seq = torch.unsqueeze(emb_seq, 0)
             emb_seqs = torch.cat((emb_seqs, emb_seq), 0)
@@ -121,7 +120,7 @@ class DGRec(torch.nn.Module):
         support_nodes_layer = [support_nodes_layer1, support_nodes_layer2]
 
         for layer in support_nodes_layer:
-            long_input = torch.LongTensor(layer)
+            long_input = layer.long()
             long_term1_2 = self.user_embedding(long_input)
             long_term.append(long_term1_2)
             # long_term[0].shape : [sample1 * sample2, embedding_dim]
@@ -134,7 +133,7 @@ class DGRec(torch.nn.Module):
 
         for layer, sample in zip(support_sessions_layer, sample1_2):
             short_arange = torch.arange(self.batch_size * sample, dtype=torch.long)
-            short_input = torch.LongTensor(layer)[short_arange]
+            short_input = layer[short_arange].long()
             friend_emb_seqs = self.item_embedding(short_input)
 
             if self.feat_drop is not None:
@@ -168,23 +167,30 @@ class DGRec(torch.nn.Module):
 
     # get user's interest influenced by friends
     def social_influence(self, hu, long_short_term):
-        hu = torch.swapaxes(hu, 0, 1)
+        hu = torch.transpose(hu, 0, 1)
         outputs = []
-        next_hidden = []
         support_sizes = [1, self.samples_2, self.samples_1 * self.samples_2]
         num_samples = [self.samples_1, self.samples_2]
         for i in range(self.max_length):
+            count = 0
             hu_ = hu[i]  # implement 1 of 20
+            hidden = [hu_, long_short_term[0], long_short_term[1]]
+            # print("hidden hop : ", hidden[1].shape, hidden[2].shape) [500,100] [5000,100]
             for layer in self.layers:
-                hidden = [hu_, long_short_term[0], long_short_term[1]]
-                for hop in range(self.num_layers):
+                next_hidden = []
+                for hop in range(self.num_layers - count):
+                    # print("# of hop : ", hop) 0->1->0
                     neigh_dims = [self.batch_size * support_sizes[hop],
                                   num_samples[self.num_layers - hop - 1],
                                   self.embedding_size]
+                    # print("neigh_dims : ", neigh_dims[0], neigh_dims[1], neigh_dims[2]) [100 5 100]->[500 10 100]->[100 5 100]
                     h = layer([hidden[hop],
                                torch.reshape(hidden[hop + 1], neigh_dims)])
                     next_hidden.append(h)
-            outputs.append(next_hidden[0])
+                    # print(h.shape) [100,100]->[500,100]->[100,100]
+                hidden = next_hidden
+                count += 1
+            outputs.append(hidden[0])
         feat = torch.stack(outputs, axis=0)
         # hu.shape, feat.shape : [max_length, batch, embedding_size]
 
@@ -198,13 +204,13 @@ class DGRec(torch.nn.Module):
         logits = sr @ self.item_embedding(self.item_indices).t()  # similarity
         # logit shape : [max_length, batch, item_embedding]
 
-        mask = torch.LongTensor(mask_y)
-        logits = torch.swapaxes(logits, 0, 1)
+        mask = mask_y.long()
+        logits = torch.transpose(logits, 0, 1)
         logits *= torch.unsqueeze(mask, 2)
 
         return logits
 
-    def forward(self, feed_dict, labels):
+    def forward(self, feed_dict):
         '''
         * Individual interest
             - Input_x: user가 Timeid(session) 에서 소비한 Itemid - 학습데이터
@@ -228,6 +234,8 @@ class DGRec(torch.nn.Module):
             - support_lengths_layer2: support_sessions_layer2에서 소비한 item의 갯수
                 [batch_size * samples_2]
         '''
+        labels = feed_dict['output_session']
+
         # interest
         hu = self.individual_interest(feed_dict['input_session'])
 
@@ -242,14 +250,21 @@ class DGRec(torch.nn.Module):
         # score
         logits = self.score(sr, feed_dict['mask_y'])
 
-        logits = (torch.swapaxes(logits, 1, 2)).to(dtype=torch.float)   # logits : [batch, item_embedding, max_length]
-        labels = torch.tensor(np.array(labels), dtype=torch.long)   # labels : [batch, max_length]
+        # metric
+        recall = self._recall(logits, labels)
+        ndcg = self._ndcg(logits, labels, feed_dict['mask_y'])
+
+        # loss
+        logits = (torch.transpose(logits, 1, 2)).to(dtype=torch.float)  # logits : [batch, item_embedding, max_length]
+        labels = labels.long()  # labels : [batch, max_length]
 
         loss = F.cross_entropy(logits, labels)
 
-        return loss
+        return loss, recall, ndcg  # loss, recall_k, ndcg
 
     def predict(self, feed_dict):
+        labels = feed_dict['output_session']
+
         hu = self.individual_interest(feed_dict['input_session'])
 
         long_short_term = self.friends_interest(feed_dict['support_nodes_layer1'],
@@ -261,4 +276,57 @@ class DGRec(torch.nn.Module):
 
         logits = self.score(sr, feed_dict['mask_y'])
 
-        return logits
+        # metric
+        recall = self._recall(logits, labels)
+        ndcg = self._ndcg(logits, labels, feed_dict['mask_y'])
+
+        # loss
+        logits = (torch.transpose(logits, 1, 2)).to(dtype=torch.float)  # logits : [batch, item_embedding, max_length]
+        labels = labels.long()  # labels : [batch, max_length]
+
+        loss = F.cross_entropy(logits, labels)
+
+        return loss, recall, ndcg  # loss, rating_loss, recall, ndcg
+
+    def _loss(self, logits, labels):
+        logits = (torch.transpose(logits, 1, 2)).to(dtype=torch.float)  # logits : [batch, item_embedding, max_length]
+        labels = labels.long()  # labels : [batch, max_length]
+
+        loss = F.cross_entropy(logits, labels)
+
+        return loss
+
+    def _recall(self, predictions, labels):
+        batch_size = predictions.shape[0]
+        _, top_k_index = torch.topk(predictions, k=20, dim=2)  # top_k_index : [batch, max_length, k]
+
+        labels = labels.long()
+        labels = torch.unsqueeze(labels, dim=2)  # labels : [batch, max_length, 1]
+        corrects = (top_k_index == labels) * (labels != 0)  # corrects : [batch, max_length, k]
+        recall_corrects = torch.sum(corrects, dim=2).to(dtype=torch.float)  # corrects : [batch, max_length]
+
+        mask_sum = (labels != 0).sum(dim=1)  # mask_sum : [batch, 1]
+        mask_sum = torch.squeeze(mask_sum, dim=1)  # mask_sum : [batch]
+
+        recall_k = (recall_corrects.sum(dim=1) / mask_sum).sum()
+
+        return recall_k / batch_size
+
+    def _ndcg(self, logits, labels, mask):
+        num_items = logits.shape[2]
+        logits = torch.reshape(logits, (logits.shape[0] * logits.shape[1], logits.shape[2]))
+        predictions = torch.transpose(logits, 0, 1)
+
+        labels = labels.long()
+        targets = torch.reshape(labels, [-1])
+        pred_values = torch.unsqueeze(torch.diagonal(predictions[targets]), -1)
+        # tile_pred_values = torch.tile(pred_values, [1, num_items])
+        tile_pred_values = pred_values.repeat(1, num_items)
+        ranks = torch.sum((logits > tile_pred_values).type(torch.float), -1) + 1
+        ndcg = 1. / (torch.log2(1.0 + ranks))
+
+        mask_sum = torch.sum(mask)
+        mask = torch.reshape(mask, [-1])
+        ndcg *= mask
+
+        return torch.sum(ndcg) / mask_sum

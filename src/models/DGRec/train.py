@@ -13,6 +13,8 @@ class MyTrainer:
     def __init__(self, device):
         self.device = device
         self.train_losses = []
+        self.train_recall = []
+        self.train_ndcg = []
         self.val_losses = []
         self.val_recall = []
         self.val_ndcg = []
@@ -28,43 +30,44 @@ class MyTrainer:
         optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
         scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=400, gamma=0.98)
 
-        patience = 20
+        patience = 10
         inc = 0
         early_stopping = False
-        highest_val_recall = -1.0
+        lowest_val_loss = float('inf')
 
         batch_len = minibatch.train_batch_len()
-        batch_len = int(batch_len)
 
         pbar = tqdm(range(epochs), position=0, leave=False, desc='epoch')
 
         for epoch in pbar:
             minibatch.shuffle()
             for batch in tqdm(range(batch_len), position=1, leave=False, desc='batch'):
-
                 model.train()
-                feed_dict = minibatch.next_train_minibatch_feed_dict()
                 optimizer.zero_grad()
 
-                loss = model(feed_dict, feed_dict['output_session'])
-                self.train_losses.append(loss.item())
+                feed_dict = minibatch.next_train_minibatch_feed_dict()
+
+                # train
+                loss, recall_k, ndcg = model(feed_dict)
 
                 loss.backward()
                 optimizer.step()
                 scheduler.step()
 
+                self.train_losses.append(loss.item())
+                self.train_recall.append(recall_k.item())
+                self.train_ndcg.append(ndcg.item())
+
+                # validation
                 val_loss, val_recall_k, val_ndcg = evaluator.evaluate(model, val_minibatch, 'val')
+
                 self.val_losses.append(val_loss)
                 self.val_recall.append(val_recall_k)
                 self.val_ndcg.append(val_ndcg)
 
                 if (batch % 100) == 0:
-                    print('Batch {:03}: train loss: {:.4} '.format(batch, loss.item()))
-
-                    if (val_recall_k >= highest_val_recall):
-                        pbar.write('Batch {:03}: valid loss: {:.4},  valid recall@20: {:.4},  valid ndcg: {:.4}'
-                                   .format(batch, val_loss, val_recall_k, val_ndcg))
-                        highest_val_recall = val_recall_k
+                    if(val_loss <= lowest_val_loss):
+                        lowest_val_loss = val_recall_k
                         inc = 0
                     else:
                         inc += 1
@@ -77,29 +80,43 @@ class MyTrainer:
                 print('Early stop at epoch: {}, batch steps: {}'.format(epoch, batch))
                 break
 
-            pbar.write('Epoch {:02}: {:.4} training loss'.format(epoch, loss.item()))
+            pbar.write(
+                'Epoch {:02}: training loss: {:.4},  training recall@20: {:.4},  training NDCG: {:.4}'
+                .format(epoch, loss, recall_k, ndcg))
+            pbar.write(
+                'Epoch {:02}: valid loss: {:.4},  valid recall@20: {:.4},  valid NDCG: {:.4}'
+                .format(epoch, val_loss, val_recall_k, val_ndcg))
             pbar.update()
 
         pbar.close()
 
-        # plot graph
+        # plot loss graph
         plt.figure(1, figsize=(10, 5))
-        plt.title("Training and Validation Loss")
+        plt.title(" Training and Validation Loss")
         plt.plot(self.train_losses, label="train")
         plt.plot(self.val_losses, label="val")
         plt.xlabel("iterations")
         plt.ylabel("Loss")
         plt.legend()
-        plt.savefig('loss-' + str(seed) + '.png')
+        plt.savefig(' loss - seed:' + str(seed) + '.png')
 
+        # plot metric graph
         plt.figure(2, figsize=(10, 5))
-        plt.title("recall@20 and ndcg")
-        plt.plot(self.val_recall, label="recall@20")
-        plt.plot(self.val_ndcg, label="ndcg")
+        plt.title(" Training and Validation recall@20")
+        plt.plot(self.train_recall, label="train")
+        plt.plot(self.val_recall, label="val")
         plt.xlabel("iterations")
         plt.ylabel("accuracy")
         plt.legend()
-        #plt.show()
-        plt.savefig('metric-' + str(seed) + '.png')
+        plt.savefig(' metric(recall@20) - seed:' + str(seed) + '.png')
+
+        plt.figure(3, figsize=(10, 5))
+        plt.title(" Training and Validation NDCG")
+        plt.plot(self.train_ndcg, label="train")
+        plt.plot(self.val_ndcg, label="val")
+        plt.xlabel("iterations")
+        plt.ylabel("accuracy")
+        plt.legend()
+        plt.savefig(' metric(ndcg) - seed:' + str(seed) + '.png')
 
         return model

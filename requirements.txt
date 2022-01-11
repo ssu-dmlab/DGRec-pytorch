@@ -1,0 +1,7 @@
+torch #version
+fire
+tqdm
+loguru
+numpy
+pandas
+matplotlib

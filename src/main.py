@@ -35,6 +35,7 @@ def run_mymodel(device, data, hyper_param):
                                   batch_size=batch_size,
                                   num_nodes=len(user_id_map),
                                   max_length=max_length,
+                                  device=device,
                                   samples_1_2=[samples_1, samples_2])
 
     val_minibatch = MinibatchIterator(adj_info,
@@ -43,6 +44,7 @@ def run_mymodel(device, data, hyper_param):
                                   batch_size=batch_size,
                                   num_nodes=len(user_id_map),
                                   max_length=max_length,
+                                  device=device,
                                   samples_1_2=[samples_1, samples_2])
 
     trainer = MyTrainer(device=device)
@@ -52,7 +54,7 @@ def run_mymodel(device, data, hyper_param):
                                            val_minibatch=val_minibatch)
 
     evaluator = MyEvaluator(device=device)
-    loss, recall_k, ndcg = evaluator.evaluate(model, minibatch)
+    loss, recall_k, ndcg = evaluator.evaluate(model, minibatch, mode='test')
 
     return loss, recall_k, ndcg
 
@@ -81,7 +83,7 @@ def main(model='DGRec',
     log_param(param)
 
     # Step 1. Load datasets
-    data_path = '/Users/kimtaesu/PycharmProjects/DGRec-pytorch/datasets/'+data_name
+    data_path = '../datasets/'+data_name
     #logger.info("path of data is:{}".format(data_path))
     MyData = MyDataset(data_path)
     data = MyData.load_data()
