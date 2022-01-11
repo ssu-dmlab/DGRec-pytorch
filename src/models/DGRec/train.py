@@ -67,7 +67,7 @@ class MyTrainer:
 
                 if (batch % 100) == 0:
                     if(val_loss <= lowest_val_loss):
-                        lowest_val_loss = val_recall_k
+                        lowest_val_loss = val_loss
                         inc = 0
                     else:
                         inc += 1
