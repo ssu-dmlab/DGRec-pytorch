@@ -6,7 +6,6 @@ from torch import nn
 import torch.nn.functional as F
 
 from loguru import logger
-from utils import glorot, zeros
 
 
 class GAT(nn.Module):

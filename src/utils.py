@@ -31,16 +31,3 @@ def log_param(param):
                 logger.info('{:20}:{:>50}'.format(in_key, '{}'.format(in_value)))
         else:
             logger.info('{:20}:{:>50}'.format(key, '{}'.format(value)))
-
-def glorot(shape):
-    """Glorot & Bengio (AISTATS 2010) init."""
-    init_range = np.sqrt(6.0/(shape[0]+shape[1]))
-    x = torch.rand(shape[0], shape[1])
-    initial = (init_range + init_range) * x - init_range
-    return initial
-
-
-def zeros(shape):
-    """All zeros."""
-    initial = torch.zeros(size=shape, dtype=torch.float32)
-    return initial

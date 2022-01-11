@@ -104,7 +104,6 @@ def main(model='DGRec',
 
     hyper_param = dict()
     hyper_param['seed'] = seed
-    hyper_param['device'] = device
     hyper_param['epochs'] = epochs
     hyper_param['act'] = act
     hyper_param['batch_size'] = batch_size

@@ -21,12 +21,11 @@ class MyTrainer:
 
     def train_with_hyper_param(self, minibatch, hyper_param, val_minibatch=None):
         seed = hyper_param['seed']
-        device = hyper_param['device']
         epochs = hyper_param['epochs']
         learning_rate = hyper_param['learning_rate']
 
         model = DGRec(hyper_param, num_layers=2).to(self.device)
-        evaluator = MyEvaluator(device=device)
+        evaluator = MyEvaluator(device=self.device)
         optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
         scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=400, gamma=0.98)
 
