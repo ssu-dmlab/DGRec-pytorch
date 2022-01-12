@@ -1,5 +1,5 @@
 
-# DGRec-pythorch
+# DGRec-pytorch
 
 Pytorch implementation model of 'Session-Based Social Recommendation via Dynamic Graph Attention Network' which is implemented by Tensorflow.
 
