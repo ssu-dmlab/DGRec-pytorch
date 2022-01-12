@@ -8,25 +8,21 @@ from models.DGRec.batch.neigh_samplers import UniformNeighborSampler
 
 np.random.seed(123)
 
+
 class MinibatchIterator(object):
-    
-    def __init__(self, 
-                adj_info, # in pandas dataframe
-                latest_sessions,
-                data, # data list, either [train, valid] or [train, valid, test].
-                batch_size,
-                num_nodes,
-                max_length,
-                samples_1_2=[10,5],
-                device='cpu',
-                training=True):
+    def __init__(self,
+                 data,
+                 hyper_param,
+                 device='cpu',
+                 training=True,
+                 ):
         self.num_layers = 2 # Currently, only 2 layer is supported.
-        self.adj_info = adj_info
-        self.latest_sessions = latest_sessions
+        self.adj_info = data[0]
+        self.latest_sessions = data[1]
         self.training = training
-        self.train_df, self.valid_df, self.test_df = data
+        self.train_df, self.valid_df, self.test_df = data[4], data[5], data[6]
         self.device = device
-        self.all_data = pd.concat(data)
+        self.all_data = pd.concat([data[4], data[5], data[6]])
         self.placeholders={
             'input_x': 'input_session',
             'input_y': 'output_session',
@@ -38,12 +34,13 @@ class MinibatchIterator(object):
             'support_lengths_layer1': 'support_lengths_layer1',
             'support_lengths_layer2': 'support_lengths_layer2',
         }
-        self.batch_size = batch_size
+        self.batch_size = hyper_param['batch_size']
         self.max_degree = 50
-        self.num_nodes = num_nodes
-        self.max_length = max_length
-        self.samples_1_2 = samples_1_2
-        self.sizes = [1, samples_1_2[1], samples_1_2[1]*samples_1_2[0]]
+        self.num_nodes = len(data[2])
+        self.num_items = len(data[3])
+        self.max_length = hyper_param['max_length']
+        self.samples_1_2 = [hyper_param['samples_1'], hyper_param['samples_2']]
+        self.sizes = [1, hyper_param['samples_2'], hyper_param['samples_2']*hyper_param['samples_1']]
         self.visible_time = self.user_visible_time()
         self.test_adj, self.test_deg = self.construct_test_adj()
         if self.training:

@@ -29,7 +29,7 @@ class MyTrainer:
         optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
         scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=40, gamma=0.98)
 
-        patience = 10
+        patience = 20
         inc = 0
         early_stopping = False
         highest_val_ndcg = 0

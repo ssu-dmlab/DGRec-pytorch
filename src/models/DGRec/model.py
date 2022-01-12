@@ -285,15 +285,7 @@ class DGRec(torch.nn.Module):
 
         loss = F.cross_entropy(logits, labels)
 
-        return loss, recall, ndcg  # loss, rating_loss, recall, ndcg
-
-    def _loss(self, logits, labels):
-        logits = (torch.transpose(logits, 1, 2)).to(dtype=torch.float)  # logits : [batch, item_embedding, max_length]
-        labels = labels.long()  # labels : [batch, max_length]
-
-        loss = F.cross_entropy(logits, labels)
-
-        return loss
+        return loss, recall, ndcg  # loss, recall, ndcg
 
     def _recall(self, predictions, labels):
         batch_size = predictions.shape[0]

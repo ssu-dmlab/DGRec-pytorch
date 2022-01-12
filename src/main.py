@@ -16,27 +16,9 @@ from loguru import logger
 
 
 def run_mymodel(device, data, hyper_param):
-    adj_info = data[0]
-    latest_per_user_by_time = data[1]
-    user_id_map = data[2]
-    item_id_map = data[3]
-    train_df = data[4]
-    valid_df = data[5]
-    test_df = data[6]
-
-    batch_size = hyper_param['batch_size']
-    max_length = hyper_param['max_length']
-    samples_1 = hyper_param['samples_1']
-    samples_2 = hyper_param['samples_2']
-
-    minibatch = MinibatchIterator(adj_info,
-                                  latest_per_user_by_time,
-                                  [train_df, valid_df, test_df],
-                                  batch_size=batch_size,
-                                  num_nodes=len(user_id_map),
-                                  max_length=max_length,
-                                  device=device,
-                                  samples_1_2=[samples_1, samples_2])
+    minibatch = MinibatchIterator(data=data,
+                                  hyper_param=hyper_param,
+                                  device=device)
 
     trainer = MyTrainer(device=device)
 
