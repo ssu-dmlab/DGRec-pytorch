@@ -52,7 +52,7 @@ def run_mymodel(device, data, hyper_param):
 def main(model='DGRec',
          data_name='bookdata',
          seed=0,
-         epochs=20,
+         epochs=40,
          act='relu',
          batch_size=100,
          learning_rate=0.002,

@@ -27,12 +27,12 @@ class MyTrainer:
         model = DGRec(hyper_param, num_layers=2).to(self.device)
         evaluator = MyEvaluator(device=self.device)
         optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
-        scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=400, gamma=0.98)
+        scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=40, gamma=0.98)
 
         patience = 10
         inc = 0
         early_stopping = False
-        lowest_val_loss = float('inf')
+        highest_val_ndcg = 0
 
         batch_len = minibatch.train_batch_len()
 
@@ -74,8 +74,8 @@ class MyTrainer:
                 self.val_ndcg.append(val_ndcg)
 
                 if (batch % 100) == 0:
-                    if(val_loss <= lowest_val_loss):
-                        lowest_val_loss = val_loss
+                    if val_ndcg >= highest_val_ndcg:
+                        highest_val_ndcg = val_ndcg
                         inc = 0
                     else:
                         inc += 1
