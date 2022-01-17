@@ -35,6 +35,7 @@ class MyTrainer:
         highest_val_ndcg = 0
 
         batch_len = minibatch.train_batch_len()
+        batch_len = 1
 
         pbar = tqdm(range(epochs), position=0, leave=False, desc='epoch')
 
@@ -89,10 +90,10 @@ class MyTrainer:
                 break
 
             pbar.write(
-                'Epoch {:02}: training loss: {:.4},  training recall@20: {:.4},  training NDCG: {:.4}'
+                'Epoch {:02}: train loss: {:.4}\t  train recall@20: {:.4}\t  train NDCG: {:.4}'
                 .format(epoch+1, total_loss/batch_len, total_recall/batch_len, total_ndcg/batch_len))
             pbar.write(
-                'Epoch {:02}: valid loss: {:.4},  valid recall@20: {:.4},  valid NDCG: {:.4}'
+                'Epoch {:02}: valid loss: {:.4}\t  valid recall@20: {:.4}\t  valid NDCG: {:.4}\n'
                 .format(epoch+1, val_loss, val_recall_k, val_ndcg))
             pbar.update()
 
