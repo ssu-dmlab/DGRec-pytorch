@@ -4,7 +4,7 @@
 Pytorch implementation model of 'Session-Based Social Recommendation via Dynamic Graph Attention Network' which is implemented by Tensorflow.
 Template code is provided at the https://github.com/DeepGraphLearning/RecommenderSystems/tree/master/socialRec which is original version code implemented by tensorflow
 
-##Getting Started
+## Getting Started
 
 ### Installation
 
@@ -63,7 +63,7 @@ In a terminal or command window, argument can be apply by typing
 |samples_2|number of target user's friends' friends|5|
 |dropout|dropout rate|0.2|
 
-##Repository Overview
+## Repository Overview
 
 Provide an overview of the directory structure and files:
 
