@@ -24,7 +24,7 @@ In a terminal or command window, navigate to the top-level project directory `DG
     1. `pip install -r requirements.txt`
     2. `unzip datasets/bookdata.zip' -d datasets/bookdata/` or `unzip datasets/musicdata.zip' -d datasets/musicdata/`
     3. `cd src`
-    4. `python3 -m src.main`
+    4. `python3 -m main`
 
 This will run the model
 
