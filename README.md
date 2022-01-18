@@ -12,10 +12,10 @@ This project requires Python 3.8 and the following Python libraries installed:
 - Numpy = 1.22.0
 - Pandas = 1.3.5
 - matplotlib = 3.5.1
-- torch = 1.7.1+cu110
+- torch = 1.8.2+cu111
 - fire = 0.4.0
 - tqdm = 4.62.3
-- logulu = 0.5.3
+- loguru = 0.5.3
 
 
 ### How to run (terminal)
