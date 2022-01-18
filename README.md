@@ -21,10 +21,10 @@ This project requires Python 3.8 and the following Python libraries installed:
 ### How to run (terminal)
 In a terminal or command window, navigate to the top-level project directory `DGRec-pytorch/` (that contain this README) and run the following commands:
 
-    1. `pip install -r requirements.txt`
-    2. `unzip datasets/bookdata.zip' -d datasets/bookdata/` or `unzip datasets/musicdata.zip' -d datasets/musicdata/`
-    3. `cd src`
-    4. `python3 -m main`
+1. `pip install -r requirements.txt`
+2. `unzip datasets/bookdata.zip -d datasets/bookdata/` or `unzip datasets/musicdata.zip -d datasets/musicdata/`
+3. `cd src`
+4. `python3 -m main`
 
 This will run the model
 
