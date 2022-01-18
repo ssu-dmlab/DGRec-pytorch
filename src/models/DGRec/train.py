@@ -35,7 +35,6 @@ class MyTrainer:
         highest_val_ndcg = 0
 
         batch_len = minibatch.train_batch_len()
-        batch_len = 1
 
         pbar = tqdm(range(epochs), position=0, leave=False, desc='epoch')
 
