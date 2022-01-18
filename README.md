@@ -32,7 +32,7 @@ This will run the model
 
 In a terminal or command window, argument can be apply by typing
 
-    python3 -m src.main \
+    python3 -m main \
             --model ··· \
             --data_name ··· \
             --seed ··· \
