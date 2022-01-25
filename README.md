@@ -115,7 +115,7 @@ The statistics of the Douban datasets, `bookdata` and `musicdata`, are summarize
 
 |Dataset|#user|#item|#event|
 |------|---|---|---|
-|`bookdata`|46,548|212,995|1.908.081|
+|`bookdata`|46,548|212,995|1,908,081|
 |`musicdata`|39,742|164,223|1,792,501|
 
 ## Experiments
