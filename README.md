@@ -12,7 +12,7 @@ This project requires Python 3.8 and the following Python libraries:
 - numpy == 1.22.0
 - pandas == 1.3.5
 - matplotlib == 3.5.1
-- torch == 1.8.2+cu111
+- torch == 1.8.2
 - fire == 0.4.0
 - tqdm == 4.62.3
 - loguru == 0.5.3
@@ -75,10 +75,12 @@ python3 -m main \
 |samples_2|Number of target user's friends' friends|5|
 |dropout|Dropout rate|0.2|
 
-## Repository Overview
+## Repository Structure
 
-Provide an overview of the directory structure and files:
+The overall file structure of this repository is as follows:
 
+```
+DGRec-pytorch
     ├── README.md
     ├── datasets
     ├── requirments
@@ -95,10 +97,11 @@ Provide an overview of the directory structure and files:
                 ├── __init__.py
                 ├── minibatch.py
                 └── neigh_sampler.py
+```
 
 ## Data
 
-### Input data:
+### Input Data Files
 * `train.tsv`: includes user historical behaviors, which is organized by pandas.Dataframe in five fields (SessionId UserId ItemId Timestamps TimeId).
 * `valid.tsv`: the same format as train.tsv, used for tuning hyperparameters.
 * `test.tsv`: the same format as test.tsv, used for testing model.
@@ -107,13 +110,13 @@ Provide an overview of the directory structure and files:
 * `user_id_map.tsv`: maps original string user id to int.
 * `item_id_map.tsv`: maps original string item id to int.
 
-### Raw data:
-The statistics of `Douban datasets` are summarized as follows:
+### Data Statistics
+The statistics of the Douban datasets, `bookdata` and `musicdata`, are summarized as follows:
 
 |Dataset|#user|#item|#event|
 |------|---|---|---|
-|DoubanMusic|39,742|164,223|1,792,501|
-|DoubanBook|46,548|212,995|1.908.081|
+|`bookdata`|46,548|212,995|1.908.081|
+|`musicdata`|39,742|164,223|1,792,501|
 
 ## Experiments
 
@@ -123,8 +126,8 @@ We have test the accuracy compared to the original result. We report average met
 
 |data|recall@20|ndcg|
 |------|---|---|
-|book data|0.3771 |0.2841|
-|music data|0.3382|0.2539|
+|`bookdata`|0.3771 |0.2841|
+|`musicdata`|0.3382|0.2539|
 
 * [ ] Implemented version - pytorch
 
