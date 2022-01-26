@@ -1,7 +1,9 @@
-torch #version
-fire
-tqdm
-loguru
-numpy
-pandas
-matplotlib
+numpy==1.22.0
+pandas==1.3.5
+matplotlib==3.5.1
+fire==0.4.0
+tqdm==4.62.3
+loguru==0.5.3
+
+--find-links https://download.pytorch.org/whl/lts/1.8/torch_lts.html
+torch==1.8.2+cu111
