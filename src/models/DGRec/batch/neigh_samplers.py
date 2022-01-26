@@ -1,3 +1,6 @@
+# Template code is provided at the
+# https://github.com/DeepGraphLearning/RecommenderSystems/blob/master/socialRec/dgrec/neigh_samplers.py
+
 from __future__ import division
 from __future__ import print_function
 

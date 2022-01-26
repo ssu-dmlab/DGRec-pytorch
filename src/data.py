@@ -1,5 +1,5 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+# Template code is provided at the
+# https://github.com/DeepGraphLearning/RecommenderSystems/blob/master/socialRec/dgrec/utils.py
 
 import numpy as np
 import pandas as pd

@@ -1,3 +1,6 @@
+# Template code is provided at the
+# https://github.com/DeepGraphLearning/RecommenderSystems/blob/master/socialRec/dgrec/minibatch.py
+
 import numpy as np
 import pandas as pd
 import sys
