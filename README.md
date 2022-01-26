@@ -82,21 +82,21 @@ The overall file structure of this repository is as follows:
 ```
 DGRec-pytorch
     ├── README.md
-    ├── datasets
-    ├── requirments
-    └── src
-        ├── utils.py
-        ├── data.py
-        ├── main.py
-        └── models
+    ├── datasets                        
+    ├── requirments                     
+    └── src         
+        ├── utils.py                    # script for setting random seed and showing hyperparameters
+        ├── data.py                     # In charge of data loading 
+        ├── main.py                     # input processing for model training
+        └── models                      
             ├── __init__.py
-            ├── eval.py
-            ├── model.py
-            ├── train.py
+            ├── eval.py                 # evaluate model with validation data
+            ├── model.py                # model implementation (forward)
+            ├── train.py                # model training with data and hyperparameter
             └── batch
                 ├── __init__.py
-                ├── minibatch.py
-                └── neigh_sampler.py
+                ├── minibatch.py        # split and set data to minibatch
+                └── neigh_sampler.py    # Classes that are used to sample node neighborhoods
 ```
 
 ## Data
