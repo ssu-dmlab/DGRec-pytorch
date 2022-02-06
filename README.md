@@ -128,13 +128,15 @@ We have test the accuracy compared to the original result. We report average met
 |------|---|---|
 |`bookdata`|0.3771 |0.2841|
 |`musicdata`|0.3382|0.2539|
+|`moviedata`|0.1861|0.1950|
 
 * [ ] Implemented version - pytorch
 
 |data|recall@20|ndcg|
 |------|---|---|
-|book data ± (std deviation)|0.3619 ± (0.0216)|0.2911 ± (0.0059)|
-|music data ± (std deviation)|0.3431 ± (0.0225)|0.2939 ± (0.0095)|
+|book data ± (std deviation)|0.3673 ± (0.0261)|0.3035 ± (0.0130)|
+|music data ± (std deviation)|0.3529 ± (0.0295)|0.2962 ± (0.0103)|
+|movie data ± (std deviation)|0.1594 ± (0.0031)|0.1955 ± (0.0015)|
 
 
  ## References
