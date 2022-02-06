@@ -29,16 +29,15 @@ Before running the model, you need to prepare datasets to be trained as follows:
 ```bash
 unzip datasets/$DATASET.zip -d datasets/$DATASET/`
 ```
-where `$DATASET` is `bookdata` or `musicdata`. 
+where `$DATASET` is one of `bookdata`, `musicdata` and `moviedata`. 
 
 
 ### How To Run
 You can simply check if the model works correctly by typing the following command:
 ```
-PYTHONPATH=src python3 run.py --data_name ${DATA_NAME}
+PYTHONPATH=src python3 run.py --data_name ${DATASET}
 ```
-The above command will start learning the model on the `${DATA_NAME}` with the specified parameters saved in `param.json`. 
- - ${DATA_NAME} is one of `bookdata`, `musicdata` and `moviedata`.
+The above command will start learning the model on the `${DATASET}` with the specified parameters saved in `param.json`.
 
 ## Usage
 To use those scripts properly, move your working directory to `./src`.
