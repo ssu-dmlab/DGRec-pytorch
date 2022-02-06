@@ -16,6 +16,7 @@ This project requires Python 3.8 and the following Python libraries:
 - fire == 0.4.0
 - tqdm == 4.62.3
 - loguru == 0.5.3
+- dotmap == 1.3.17
 
 To install the pacakges used in this repository, type the following command at the project root:
 ```bash
@@ -34,13 +35,15 @@ where `$DATASET` is `bookdata` or `musicdata`.
 ### How To Run
 You can simply check if the model works correctly by typing the following command:
 ```
-cd src && python3 -m main
+PYTHONPATH=src python3 run.py --data_name ${DATA_NAME}
 ```
-The above command will start learning the model on the `bookdata` with the below default parameters . 
+The above command will start learning the model on the `${DATA_NAME}` with the specified parameters saved in `param.json`. 
+ - ${DATA_NAME} is one of `bookdata`, `musicdata` and `moviedata`.
 
 ## Usage
+To use those scripts properly, move your working directory to `./src`.
 
-You can run this project to simply type the following in your terminal:
+You can tune the hyperparameters and run this project to simply type the following in your terminal:
 
 ```
 python3 -m main \
@@ -65,7 +68,7 @@ python3 -m main \
 |model|Name of model|'DGRec'|
 |data_name|Name of data|'bookdata'|
 |seed|Random seed|0|
-|epochs|Number of traning epochs |40|
+|epochs|Number of traning epochs |20|
 |act|Type of activation function|'relu'|
 |batch_size|Size of batch|100|
 |learning_rate|Learning rate of model|0.002|
@@ -83,7 +86,8 @@ The overall file structure of this repository is as follows:
 DGRec-pytorch
     ├── README.md
     ├── datasets                        
-    ├── requirments                     
+    ├── requirments
+    ├── run.py                          # simply run model with hyperparameter which already specified                 
     └── src         
         ├── utils.py                    # script for setting random seed and showing hyperparameters
         ├── data.py                     # In charge of data loading 
@@ -117,6 +121,7 @@ The statistics of the Douban datasets, `bookdata` and `musicdata`, are summarize
 |------|---|---|---|
 |`bookdata`|46,548|212,995|1,908,081|
 |`musicdata`|39,742|164,223|1,792,501|
+|`moviedata`|94,890|81,906|11,742,260|
 
 ## Experiments
 

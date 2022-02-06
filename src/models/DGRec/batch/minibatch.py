@@ -316,10 +316,3 @@ class MinibatchIterator(object):
         self.batch_num = 0
         self.batch_num_val = 0
         self.batch_num_test = 0
-
-    def val_shuffle(self):
-        '''
-        Shuffle validation data.
-        '''
-        self.batch_num_val = 0
-        self.batch_num_test = 0

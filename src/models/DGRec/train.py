@@ -23,11 +23,10 @@ class MyTrainer:
         seed = hyper_param['seed']
         epochs = hyper_param['epochs']
         learning_rate = hyper_param['learning_rate']
+        data_name = hyper_param['data_name']
 
         model = DGRec(hyper_param, num_layers=2).to(self.device)
         evaluator = MyEvaluator(device=self.device)
-        optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
-        scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=40, gamma=0.98)
 
         patience = 20
         inc = 0
@@ -35,6 +34,9 @@ class MyTrainer:
         highest_val_ndcg = 0
 
         batch_len = minibatch.train_batch_len()
+
+        optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+        scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=batch_len / 10, gamma=0.98)
 
         pbar = tqdm(range(epochs), position=0, leave=False, desc='epoch')
 
@@ -62,18 +64,16 @@ class MyTrainer:
                 total_recall += recall_k.item()
                 total_ndcg += ndcg.item()
 
-                self.train_losses.append(loss.item())
                 self.train_recall.append(recall_k.item())
                 self.train_ndcg.append(ndcg.item())
 
                 # validation
-                val_loss, val_recall_k, val_ndcg = evaluator.evaluate(model, minibatch, mode='val')
+                if (batch % int(batch_len / 10)) == 0:
+                    val_loss, val_recall_k, val_ndcg = evaluator.evaluate(model, minibatch, mode='val')
 
-                self.val_losses.append(val_loss)
-                self.val_recall.append(val_recall_k)
-                self.val_ndcg.append(val_ndcg)
+                    self.val_recall.append(val_recall_k)
+                    self.val_ndcg.append(val_ndcg)
 
-                if (batch % 100) == 0:
                     if val_ndcg >= highest_val_ndcg:
                         highest_val_ndcg = val_ndcg
                         inc = 0
@@ -98,33 +98,26 @@ class MyTrainer:
 
         pbar.close()
 
-        # plot loss graph
-        plt.figure(1, figsize=(10, 5))
-        plt.title(" Training and Validation Loss")
-        plt.plot(self.train_losses, label="train")
-        plt.plot(self.val_losses, label="val")
-        plt.xlabel("iterations")
-        plt.ylabel("Loss")
-        plt.legend()
-        plt.savefig(' loss - seed:' + str(seed) + '.png')
-
-        # plot metric graph
+        # plot training metric graph
         plt.figure(2, figsize=(10, 5))
-        plt.title(" Training and Validation recall@20")
-        plt.plot(self.train_recall, label="train")
-        plt.plot(self.val_recall, label="val")
+        plt.title(" Training metric")
+        plt.plot(self.train_recall, label="recall")
+        plt.plot(self.train_ndcg, label="ndcg")
         plt.xlabel("iterations")
         plt.ylabel("accuracy")
         plt.legend()
-        plt.savefig(' metric(recall@20) - seed:' + str(seed) + '.png')
+        plt.savefig(' training metric --data_name ' + str(data_name) + ' --seed ' + str(seed) + '.png')
+        plt.clf()
 
+        # plot validation metric graph
         plt.figure(3, figsize=(10, 5))
-        plt.title(" Training and Validation NDCG")
-        plt.plot(self.train_ndcg, label="train")
-        plt.plot(self.val_ndcg, label="val")
+        plt.title(" Validation metric")
+        plt.plot(self.val_recall, label="recall")
+        plt.plot(self.val_ndcg, label="ndcg")
         plt.xlabel("iterations")
         plt.ylabel("accuracy")
         plt.legend()
-        plt.savefig(' metric(ndcg) - seed:' + str(seed) + '.png')
+        plt.savefig(' validation metric --data_name ' + str(data_name) + ' --seed ' + str(seed) + '.png')
+        plt.clf()
 
         return model

@@ -1,0 +1,14 @@
+{
+  "model": "DGRec",
+  "data_name":"moviedata",
+  "seed": 123,
+  "epochs": 20,
+  "act": "relu",
+  "batch_size": 500,
+  "learning_rate": 0.002,
+  "embedding_size": 100,
+  "max_length": 20,
+  "samples_1": 10,
+  "samples_2": 5,
+  "dropout": 0.2
+}
