@@ -35,9 +35,9 @@ where `$DATASET` is one of `bookdata`, `musicdata` and `moviedata`.
 ### How To Run
 You can simply check if the model works correctly by typing the following command:
 ```
-PYTHONPATH=src python3 run.py --data_name ${DATASET}
+PYTHONPATH=src python3 run.py --data_name $DATASET
 ```
-The above command will start learning the model on the `${DATASET}` with the specified parameters saved in `param.json`.
+The above command will start learning the model on the `$DATASET` with the specified parameters saved in `param.json`.
 
 ## Usage
 To use those scripts properly, move your working directory to `./src`.
