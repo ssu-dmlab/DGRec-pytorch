@@ -45,7 +45,7 @@ To use those scripts properly, move your working directory to `./src`.
 You can tune the hyperparameters and run this project to simply type the following in your terminal:
 
 ```
-python3 -m main \
+python3 -m main_trainer \
         --model ··· \
         --data_name ··· \
         --seed ··· \
