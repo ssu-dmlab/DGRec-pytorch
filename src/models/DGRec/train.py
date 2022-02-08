@@ -24,6 +24,7 @@ class MyTrainer:
         epochs = hyper_param['epochs']
         learning_rate = hyper_param['learning_rate']
         data_name = hyper_param['data_name']
+        embedding_size = hyper_param['embedding_size']
 
         model = DGRec(hyper_param, num_layers=2).to(self.device)
         evaluator = MyEvaluator(device=self.device)
@@ -103,10 +104,10 @@ class MyTrainer:
         plt.title(" Training metric")
         plt.plot(self.train_recall, label="recall")
         plt.plot(self.train_ndcg, label="ndcg")
-        plt.xlabel("iterations")
+        plt.xlabel("time step (=iterations)")
         plt.ylabel("accuracy")
         plt.legend()
-        plt.savefig(' training metric --data_name ' + str(data_name) + ' --seed ' + str(seed) + '.png')
+        plt.savefig(' training metric --data_name ' + str(data_name) + ' --seed ' + str(seed) + ' --emb ' + str(embedding_size) + '.png')
         plt.clf()
 
         # plot validation metric graph
@@ -114,10 +115,10 @@ class MyTrainer:
         plt.title(" Validation metric")
         plt.plot(self.val_recall, label="recall")
         plt.plot(self.val_ndcg, label="ndcg")
-        plt.xlabel("iterations")
+        plt.xlabel("time step (=batch_size/10)")
         plt.ylabel("accuracy")
         plt.legend()
-        plt.savefig(' validation metric --data_name ' + str(data_name) + ' --seed ' + str(seed) + '.png')
+        plt.savefig(' validation metric --data_name ' + str(data_name) + ' --seed ' + str(seed) + ' --emb ' + str(embedding_size) + '.png')
         plt.clf()
 
         return model

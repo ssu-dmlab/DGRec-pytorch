@@ -174,19 +174,15 @@ class DGRec(torch.nn.Module):
             count = 0
             hu_ = hu[i]  # implement 1 of 20
             hidden = [hu_, long_short_term[0], long_short_term[1]]
-            # print("hidden hop : ", hidden[1].shape, hidden[2].shape) [500,100] [5000,100]
             for layer in self.layers:
                 next_hidden = []
                 for hop in range(self.num_layers - count):
-                    # print("# of hop : ", hop) 0->1->0
                     neigh_dims = [self.batch_size * support_sizes[hop],
                                   num_samples[self.num_layers - hop - 1],
                                   self.embedding_size]
-                    # print("neigh_dims : ", neigh_dims[0], neigh_dims[1], neigh_dims[2]) [100 5 100]->[500 10 100]->[100 5 100]
                     h = layer([hidden[hop],
                                torch.reshape(hidden[hop + 1], neigh_dims)])
                     next_hidden.append(h)
-                    # print(h.shape) [100,100]->[500,100]->[100,100]
                 hidden = next_hidden
                 count += 1
             outputs.append(hidden[0])
@@ -212,25 +208,25 @@ class DGRec(torch.nn.Module):
     def forward(self, feed_dict):
         '''
         * Individual interest
-            - Input_x: user가 Timeid(session) 에서 소비한 Itemid - 학습데이터
+            - Input_x: Itemid that user consumed in Timeid(session) - input data
                 [batch_size, max_length]
-            - Input_y: user가 Timeid(session) 에서 소비한 Itemid - 정답레이블
+            - Input_y: Itemid that user consumed in Timeid(session) - label
                 [batch_size, max_length]
-            - mask_y: input_y에서 소비한 item이 있으면 True, 없으면 False로 나타낸 리스트
+            - mask_y: mask of input_y
                 [batch_size, max_length]
         * Friends' interest (long-term)
-            - support_nodes_layer1: friends' friends의 Userid
+            - support_nodes_layer1: Userid of friends' friends
                 [batch_size * samples_1 * samples_2]
-            - support_nodes_layer2: user와 연결되어있는 friends의 Userid
+            - support_nodes_layer2: Userid of friends
                 [batch_size * samples_2]
         * Friends' interest (short-term)
-            - support_sessions_layer1: friends' friends가 가장 최근 Timeid에서 소비한 Itemid
+            - support_sessions_layer1: Itemid that friends' friends spent most recently on Timeid.
                 [batch_size * samples_1 * samples_2]
-            - support_sessions_layer2: user와 연결되어있는 friends가 가장 최근 Timeid에서 소비한 Itemid
+            - support_sessions_layer2: Itemid that friends spent most recently on Timeid.
                 [batch_size * samples_2]
-            - support_lengths_layer1: support_sessions_layer1에서 소비한 item의 갯수
+            - support_lengths_layer1: Number of items consumed by support_sessions_layer1
                 [batch_size * samples_1 * samples_2]
-            - support_lengths_layer2: support_sessions_layer2에서 소비한 item의 갯수
+            - support_lengths_layer2: Number of items consumed by support_sessions_layer2
                 [batch_size * samples_2]
         '''
         labels = feed_dict['output_session']
@@ -285,7 +281,7 @@ class DGRec(torch.nn.Module):
 
         loss = F.cross_entropy(logits, labels)
 
-        return loss, recall, ndcg  # loss, recall, ndcg
+        return loss, recall, ndcg
 
     def _recall(self, predictions, labels):
         batch_size = predictions.shape[0]

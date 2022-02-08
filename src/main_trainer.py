@@ -39,7 +39,7 @@ def main(model='DGRec',
          act='relu',
          batch_size=100,
          learning_rate=0.002,
-         embedding_size=100,
+         embedding_size=50,
          max_length=20,
          samples_1=10,
          samples_2=5,
@@ -109,27 +109,5 @@ def main(model='DGRec',
     return recall_k, ndcg
 
 
-def experiment(data_name='bookdata',
-               batch_size=100
-               ):
-
-    recall_k = []
-    ndcg = []
-    hyper_seed = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-
-    for seed in hyper_seed:
-        metric1, metric2 = main(data_name=data_name, seed=seed, batch_size=batch_size)
-        recall_k.append(metric1)
-        ndcg.append(metric2)
-
-    result = {'data_name': data_name,
-              'Recall@20': recall_k,
-              'NDCG': ndcg}
-
-    df = pd.DataFrame(result)
-    df.to_csv("./DGRec_" + str(data_name) + ".csv")
-
-
 if __name__ == "__main__":
     sys.exit(fire.Fire(main))
-
