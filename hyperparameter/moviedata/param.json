@@ -1,7 +1,7 @@
 {
   "model": "DGRec",
   "data_name":"moviedata",
-  "seed": 123,
+  "seed": 1,
   "epochs": 20,
   "act": "relu",
   "batch_size": 500,

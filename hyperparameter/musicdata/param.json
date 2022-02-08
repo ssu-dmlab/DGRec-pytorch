@@ -1,7 +1,7 @@
 {
   "model": "DGRec",
   "data_name":"musicdata",
-  "seed": 123,
+  "seed": 0,
   "epochs": 20,
   "act": "relu",
   "batch_size": 50,

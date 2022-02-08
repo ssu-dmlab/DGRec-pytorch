@@ -138,7 +138,7 @@ We have test the accuracy compared to the original result. We report average met
 
 |data|recall@20|ndcg|
 |------|---|---|
-|book data ± (std deviation)|0.3673 ± (0.0261)|0.3035 ± (0.0130)|
+|book data ± (std deviation)|0.3718 ± (0.0250)|0.3066 ± (0.0116)|
 |music data ± (std deviation)|0.3529 ± (0.0295)|0.2962 ± (0.0103)|
 |movie data ± (std deviation)|0.1594 ± (0.0031)|0.1955 ± (0.0015)|
 
