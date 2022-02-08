@@ -48,7 +48,7 @@ def main(model='DGRec',
 
     # Step 0. Initialization
     logger.info("The main procedure has started with the following parameters:")
-    device = 'cuda:1' if torch.cuda.is_available() else 'cpu'
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
     set_random_seed(seed=seed, device=device)
 
     param = dict()
