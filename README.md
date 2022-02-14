@@ -116,7 +116,7 @@ The datasets are from the original repository [(link)](https://github.com/DeepGr
 * `item_id_map.tsv`: maps original string item name to integer id.
 
 ### Data Statistics
-The statistics of the Douban datasets, `bookdata` and `musicdata`, are summarized as follows:
+The statistics of `bookdata`, `musicdata`, and `moviedata` from the Douban domain are summarized as follows:
 
 |Dataset|#user|#item|#event|
 |------|---|---|---|
@@ -126,7 +126,7 @@ The statistics of the Douban datasets, `bookdata` and `musicdata`, are summarize
 
 ## Experiments
 
-We compare our implmentation compared to the original code in terms of recall@20 and ndcg. We report average metrics with thier standard deviations of 10 runs.
+We compare our implmentation compared to the original one in terms of recall@20 and ndcg. We report average metrics with thier standard deviations of 10 runs.
 
 * Original version based on Tensorflow
 
