@@ -2,7 +2,7 @@
 # DGRec-pytorch
 
 This repository implements **DGRec** proposed in "Session-Based Social Recommendation via Dynamic Graph Attention Network (WSDM 2019)" using PyTorch. 
-We refer to the original code [(link)](https://github.com/DeepGraphLearning/RecommenderSystems/tree/master/socialRec) which is implemented by Tensorflow.
+We refer to the original code [(link)](https://github.com/DeepGraphLearning/RecommenderSystems/tree/master/socialRec) which was implemented by Tensorflow.
 
 ## Getting Started
 
@@ -33,7 +33,7 @@ where `$DATASET` is one of `bookdata`, `musicdata` and `moviedata`.
 
 
 ### How To Run
-You can simply check if the model works correctly by typing the following command:
+You can simply check if the model works correctly with the following command:
 ```
 PYTHONPATH=src python3 run.py --data_name $DATASET
 ```
@@ -86,32 +86,34 @@ DGRec-pytorch
     ├── README.md
     ├── datasets                        
     ├── requirments
-    ├── run.py                          # simply run model with hyperparameter which already specified                 
+    ├── run.py                          # starts training the model with specified hyperparameters
     └── src         
-        ├── utils.py                    # script for setting random seed and showing hyperparameters
-        ├── data.py                     # In charge of data loading 
-        ├── main.py                     # input processing for model training
+        ├── utils.py                    # contains utility functions such as setting random seed and showing hyperparameters
+        ├── data.py                     # loads a specified dataset
+        ├── main.py                     # processes input arguments of a user for training
         └── models                      
             ├── __init__.py
-            ├── eval.py                 # evaluate model with validation data
-            ├── model.py                # model implementation (forward)
-            ├── train.py                # model training with data and hyperparameter
+            ├── eval.py                 # evaluates the model with a validation dataset
+            ├── model.py                # implements the forward function of the model
+            ├── train.py                # implements a function for training the model with hyperparameters
             └── batch
                 ├── __init__.py
-                ├── minibatch.py        # split and set data to minibatch
-                └── neigh_sampler.py    # Classes that are used to sample node neighborhoods
+                ├── minibatch.py        # splits a dataset to mini-batches
+                └── neigh_sampler.py    # samples neighborhoods of a given node
 ```
 
 ## Data
 
 ### Input Data Files
-* `train.tsv`: includes user historical behaviors, which is organized by pandas.Dataframe in five fields (SessionId UserId ItemId Timestamps TimeId).
-* `valid.tsv`: the same format as train.tsv, used for tuning hyperparameters.
-* `test.tsv`: the same format as test.tsv, used for testing model.
-* `adj.tsv`: includes links between users, which is also organized by pandas.Dataframe in two fields (FromId, ToId).
+The datasets are from the original repository [(link)](https://github.com/DeepGraphLearning/RecommenderSystems/tree/master/socialRec). The format of each file is as follows:
+
+* `train.tsv`: includes historical behaviors of users. The data in the file is loaded into pandas.Dataframe with five fields such as (SessionId UserId ItemId Timestamps TimeId)
+* `valid.tsv`: the same format as `train.tsv`, used for tuning hyperparameters.
+* `test.tsv`: the same format as `train.tsv`, used for testing model.
+* `adj.tsv`: an edge list representing relationships between users, which is also organized by pandas.Dataframe in two fields (FromId, ToId).
 * `latest_session.tsv`: serves as 'reference' to target user. This file records all users available session at each time slot. For example, at time slot t, it stores user u's t-1 th session.
-* `user_id_map.tsv`: maps original string user id to int.
-* `item_id_map.tsv`: maps original string item id to int.
+* `user_id_map.tsv`: maps original string user name to integer id.
+* `item_id_map.tsv`: maps original string item name to integer id.
 
 ### Data Statistics
 The statistics of the Douban datasets, `bookdata` and `musicdata`, are summarized as follows:
@@ -124,9 +126,9 @@ The statistics of the Douban datasets, `bookdata` and `musicdata`, are summarize
 
 ## Experiments
 
-We have test the accuracy compared to the original result. We report average metrics with thier standard deviations of 10 runs.
+We compare our implmentation compared to the original code in terms of recall@20 and ndcg. We report average metrics with thier standard deviations of 10 runs.
 
-* [ ] Original version - tensorflow
+* Original version based on Tensorflow
 
 |data|recall@20|ndcg|
 |------|---|---|
@@ -134,7 +136,7 @@ We have test the accuracy compared to the original result. We report average met
 |`musicdata`|0.3382|0.2539|
 |`moviedata`|0.1861|0.1950|
 
-* [ ] Implemented version - pytorch
+* Our version based on PyTorch
 
 |data|recall@20|ndcg|
 |------|---|---|
@@ -143,5 +145,5 @@ We have test the accuracy compared to the original result. We report average met
 |movie data ± (std deviation)|0.1594 ± (0.0031)|0.1955 ± (0.0015)|
 
 
- ## References
- [1] Song, W., Xiao, Z., Wang, Y., Charlin, L., Zhang, M., & Tang, J. (2019, January). Session-based social recommendation via dynamic graph attention networks. In Proceedings of the Twelfth ACM international conference on web search and data mining (pp. 555-563).
+## References
+[1] Song, W., Xiao, Z., Wang, Y., Charlin, L., Zhang, M., & Tang, J. (2019, January). Session-based social recommendation via dynamic graph attention networks. In Proceedings of the Twelfth ACM international conference on web search and data mining (pp. 555-563).
