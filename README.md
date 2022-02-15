@@ -71,7 +71,7 @@ python3 -m main_trainer \
 |act|Type of activation function|'relu'|
 |batch_size|Size of batch|100|
 |learning_rate|Learning rate of model|0.002|
-|embedding_size|Size of item and user embedding|100|
+|embedding_size|Size of item and user embedding|50|
 |max_length|Max item count reflected in each user_embedding|20|
 |samples_1|Number of target user's friends|10|
 |samples_2|Number of target user's friends' friends|5|
@@ -140,9 +140,30 @@ We compare our implmentation compared to the original one in terms of recall@20 
 
 |data|recall@20|ndcg|
 |------|---|---|
-|book data ± (std deviation)|0.3718 ± (0.0250)|0.3066 ± (0.0116)|
-|music data ± (std deviation)|0.3529 ± (0.0295)|0.2962 ± (0.0103)|
-|movie data ± (std deviation)|0.1594 ± (0.0031)|0.1955 ± (0.0015)|
+|book data|0.3718 ± (0.0250)|0.3066 ± (0.0116)|
+|music data|0.3529 ± (0.0295)|0.2962 ± (0.0103)|
+|movie data|0.1594 ± (0.0031)|0.1955 ± (0.0015)|
+
+### Hyperparameter tuning
+
+The following table summarizes the results of finding better hyperparameters.
+
+|data|embedding size|learning rate|recall@20|ndcg|
+|----|--------------|-------------|---------|----|
+|book data|100|0.002|0.3673 ± (0.0261)|0.3035 ± (0.0130)|
+|book data|50|0.002|0.3718 ± (0.0250)|0.3066 ± (0.0116)|
+|book data|30|0.002|0.3551 ± (0.0431)|0.2998 ± (0.0132)|
+|music data|100|0.002|0.3529 ± (0.0295)|0.2962 ± (0.0103)|
+|music data|50|0.002|0.3584 ± (0.0181)|0.2876 ± (0.0121)|
+|music data|30|0.002|0.3327 ± (0.0259)|0.2709 ± (0.0109)|
+|movie data|100|0.002|0.1594 ± (0.0031)|0.1955 ± (0.0015)|
+|movie data|100|0.01|0.1574 ± (0.0039)|0.1912 ± (0.0024)|
+|movie data|50|0.002|0.1509 ± (0.0021)|0.1885 ± (0.0009)|
+|movie data|50|0.01|0.1586 ± (0.0033)|0.1901 ± (0.0023)|
+|movie data|50|0.05|0.0921 ± (0.0080)|0.1473 ± (0.0040)|
+|movie data|30|0.002|0.1349 ± (0.0029)|0.1748 ± (0.0014)|
+
+* For book data, music data, and movie data, each `batch size` is 100, 50, and 500.
 
 
 ## References
