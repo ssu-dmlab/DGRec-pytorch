@@ -106,8 +106,6 @@ def main(model='DGRec',
     # Step 3. Report and save the final results
     logger.info("The model has been trained. The test loss is {:.4} and recall_k is {:.4} and ndcg is {:.4}.".format(loss, recall_k, ndcg))
 
-    return recall_k, ndcg
-
 
 if __name__ == "__main__":
     sys.exit(fire.Fire(main))
