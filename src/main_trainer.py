@@ -44,11 +44,12 @@ def main(model='DGRec',
          samples_1=10,
          samples_2=5,
          dropout=0.2,
+         gpu_id=0,
          ):
 
     # Step 0. Initialization
     logger.info("The main procedure has started with the following parameters:")
-    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    device = 'cuda:'+str(gpu_id) if torch.cuda.is_available() else 'cpu'
     set_random_seed(seed=seed, device=device)
 
     param = dict()
