@@ -144,13 +144,13 @@ class MinibatchIterator(object):
             input_y.append(y)
             mask_y.append(mask)
 
-        feed_dict.update({self.placeholders['input_x']: torch.tensor(input_x).to(self.device)})
-        feed_dict.update({self.placeholders['input_y']: torch.tensor(input_y).to(self.device)})
-        feed_dict.update({self.placeholders['mask_y']: torch.tensor(mask_y).to(self.device)})
+        feed_dict.update({self.placeholders['input_x']: torch.tensor(np.array(input_x)).to(self.device)})
+        feed_dict.update({self.placeholders['input_y']: torch.tensor(np.array(input_y)).to(self.device)})
+        feed_dict.update({self.placeholders['mask_y']: torch.tensor(np.array(mask_y)).to(self.device)})
 
         # support nodes layer1 / 2
-        feed_dict.update({self.placeholders['support_nodes_layer1']: torch.tensor(samples[2]).to(self.device)})
-        feed_dict.update({self.placeholders['support_nodes_layer2']: torch.tensor(samples[1]).to(self.device)})
+        feed_dict.update({self.placeholders['support_nodes_layer1']: torch.tensor(np.array(samples[2])).to(self.device)})
+        feed_dict.update({self.placeholders['support_nodes_layer2']: torch.tensor(np.array(samples[1])).to(self.device)})
 
         # prepare supportive user's recent sessions.
         support_layers_session = []
@@ -176,13 +176,13 @@ class MinibatchIterator(object):
             support_layers_length.append(support_lengths)
 
         feed_dict.update(
-            {self.placeholders['support_sessions_layer1']: torch.tensor(support_layers_session[0]).to(self.device)})
+            {self.placeholders['support_sessions_layer1']: torch.tensor(np.array(support_layers_session[0])).to(self.device)})
         feed_dict.update(
-            {self.placeholders['support_sessions_layer2']: torch.tensor(support_layers_session[1]).to(self.device)})
+            {self.placeholders['support_sessions_layer2']: torch.tensor(np.array(support_layers_session[1])).to(self.device)})
         feed_dict.update(
-            {self.placeholders['support_lengths_layer1']: torch.tensor(support_layers_length[0]).to(self.device)})
+            {self.placeholders['support_lengths_layer1']: torch.tensor(np.array(support_layers_length[0])).to(self.device)})
         feed_dict.update(
-            {self.placeholders['support_lengths_layer2']: torch.tensor(support_layers_length[1]).to(self.device)})
+            {self.placeholders['support_lengths_layer2']: torch.tensor(np.array(support_layers_length[1])).to(self.device)})
 
         return feed_dict
 
