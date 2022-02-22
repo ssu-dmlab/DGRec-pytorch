@@ -86,7 +86,8 @@ class MyTrainer:
                     break
 
             if early_stopping:
-                print('Early stop at epoch: {}, batch steps: {}'.format(epoch+1, batch))
+                pbar.write('Early stop at epoch: {}, batch steps: {}'.format(epoch+1, batch))
+                pbar.update(pbar.total)
                 break
 
             pbar.write(
