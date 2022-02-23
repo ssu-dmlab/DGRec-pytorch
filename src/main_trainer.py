@@ -44,6 +44,8 @@ def main(model='DGRec',
          samples_1=10,
          samples_2=5,
          dropout=0.2,
+         decay_steps=400,
+         decay_rate=0.98,
          gpu_id=0,
          ):
 
@@ -90,6 +92,8 @@ def main(model='DGRec',
     hyper_param['samples_1'] = samples_1
     hyper_param['samples_2'] = samples_2
     hyper_param['dropout'] = dropout
+    hyper_param['decay_steps'] = decay_steps
+    hyper_param['decay_rate'] = decay_rate
     log_param(hyper_param)
 
     if model == 'DGRec':

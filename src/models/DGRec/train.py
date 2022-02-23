@@ -25,6 +25,8 @@ class MyTrainer:
         learning_rate = hyper_param['learning_rate']
         data_name = hyper_param['data_name']
         embedding_size = hyper_param['embedding_size']
+        decay_steps = hyper_param['decay_steps']
+        decay_rate = hyper_param['decay_rate']
 
         model = DGRec(hyper_param, num_layers=2).to(self.device)
         evaluator = MyEvaluator(device=self.device)
@@ -37,7 +39,7 @@ class MyTrainer:
         batch_len = minibatch.train_batch_len()
 
         optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
-        scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=batch_len / 10, gamma=0.98)
+        scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=decay_steps, gamma=decay_rate)
 
         pbar = tqdm(range(epochs), position=0, leave=False, desc='epoch')
 
@@ -61,12 +63,12 @@ class MyTrainer:
                 optimizer.step()
                 scheduler.step()
 
+                # log
                 total_loss += loss.item()
-                total_recall += recall_k.item()
-                total_ndcg += ndcg.item()
-
-                self.train_recall.append(recall_k.item())
-                self.train_ndcg.append(ndcg.item())
+                total_recall += recall_k
+                total_ndcg += ndcg
+                self.train_recall.append(recall_k)
+                self.train_ndcg.append(ndcg)
 
                 # validation
                 if (batch % int(batch_len / 10)) == 0:
@@ -81,6 +83,7 @@ class MyTrainer:
                     else:
                         inc += 1
 
+                # early stopping
                 if inc >= patience:
                     early_stopping = True
                     break

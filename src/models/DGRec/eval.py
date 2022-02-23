@@ -25,8 +25,8 @@ class MyEvaluator:
                 loss, recall_k, ndcg = model.predict(feed_dict)
 
                 val_loss.append(loss.item())
-                val_recall.append(recall_k.item())
-                val_ndcg.append(ndcg.item())
+                val_recall.append(recall_k)
+                val_ndcg.append(ndcg)
 
         return np.mean(val_loss), np.mean(val_recall), np.mean(val_ndcg)
 
