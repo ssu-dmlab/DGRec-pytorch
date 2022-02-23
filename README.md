@@ -58,6 +58,7 @@ python3 -m main_trainer \
         --samples_1 ··· \
         --samples_2 ··· \
         --dropout ··· \
+        --gpu_id ... \
 ```
   
 ### Arguments
@@ -76,6 +77,7 @@ python3 -m main_trainer \
 |samples_1|Number of target user's friends|10|
 |samples_2|Number of target user's friends' friends|5|
 |dropout|Dropout rate|0.2|
+|gpu_id|Id of gpu you use|0|
 
 ## Repository Structure
 
