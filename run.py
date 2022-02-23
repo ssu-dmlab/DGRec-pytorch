@@ -25,7 +25,9 @@ def main_wrapper(data_name='bookdata'):
          max_length=param.max_length,
          samples_1=param.samples_1,
          samples_2=param.samples_2,
-         dropout=param.dropout)
+         dropout=param.dropout,
+         decay_rate=param.decay_rate,
+         )
 
 
 if __name__ == "__main__":
