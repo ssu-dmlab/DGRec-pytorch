@@ -25,7 +25,6 @@ class MyTrainer:
         learning_rate = hyper_param['learning_rate']
         data_name = hyper_param['data_name']
         embedding_size = hyper_param['embedding_size']
-        decay_steps = hyper_param['decay_steps']
         decay_rate = hyper_param['decay_rate']
 
         model = DGRec(hyper_param, num_layers=2).to(self.device)
@@ -39,7 +38,7 @@ class MyTrainer:
         batch_len = minibatch.train_batch_len()
 
         optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
-        scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=decay_steps, gamma=decay_rate)
+        scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=batch_len / 10, gamma=decay_rate)
 
         pbar = tqdm(range(epochs), position=0, leave=False, desc='epoch')
 
