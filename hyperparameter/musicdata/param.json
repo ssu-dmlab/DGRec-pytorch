@@ -10,5 +10,6 @@
   "max_length": 20,
   "samples_1": 10,
   "samples_2": 5,
-  "dropout": 0.2
+  "dropout": 0.2,
+  "decay_rate": 0.98,
 }
