@@ -38,7 +38,7 @@ class MyTrainer:
         batch_len = minibatch.train_batch_len()
 
         optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
-        scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=batch_len / 10, gamma=decay_rate)
+        scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=batch_len // 10, gamma=decay_rate)
 
         pbar = tqdm(range(epochs), position=0, leave=False, desc='epoch')
 
@@ -116,7 +116,7 @@ class MyTrainer:
         # plot validation metric graph
         plt.figure(3, figsize=(10, 5))
         plt.title(" Validation metric")
-        plt.plot(self.val_recall, label="recall")
+        plt.plot(self.val_recall, label="recall")ß
         plt.plot(self.val_ndcg, label="ndcg")
         plt.xlabel("time step (=batch_size/10)")
         plt.ylabel("accuracy")
