@@ -27,7 +27,7 @@ pip install -r requirements.txt
 
 Before running the model, you need to prepare datasets to be trained as follows:
 ```bash
-unzip datasets/$DATASET.zip -d datasets/$DATASET/`
+unzip datasets/$DATASET.zip -d datasets/$DATASET/
 ```
 where `$DATASET` is one of `bookdata`, `musicdata` and `moviedata`. 
 
