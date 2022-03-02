@@ -3,13 +3,14 @@
   "data_name":"bookdata",
   "seed": 1,
   "epochs": 20,
-  "act": "relu",
+  "act": "elu",
   "batch_size": 100,
-  "learning_rate": 0.002,
+  "learning_rate": 0.01,
   "embedding_size": 50,
   "max_length": 20,
   "samples_1": 10,
   "samples_2": 5,
-  "dropout": 0.2,
-  "decay_rate": 0.98
+  "dropout": 0.3,
+  "decay_rate": 0.99,
+  "gpu_id": 0
 }

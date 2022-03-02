@@ -11,5 +11,6 @@
   "samples_1": 10,
   "samples_2": 5,
   "dropout": 0.2,
-  "decay_rate": 0.98
+  "decay_rate": 0.98,
+  "gpu_id": 0
 }

@@ -3,13 +3,14 @@
   "data_name":"musicdata",
   "seed": 0,
   "epochs": 20,
-  "act": "relu",
+  "act": "elu",
   "batch_size": 50,
-  "learning_rate": 0.002,
+  "learning_rate": 0.01,
   "embedding_size": 100,
   "max_length": 20,
   "samples_1": 10,
   "samples_2": 5,
   "dropout": 0.2,
-  "decay_rate": 0.98
+  "decay_rate": 0.98,
+  "gpu_id": 0
 }
