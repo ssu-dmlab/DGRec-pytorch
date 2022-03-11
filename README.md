@@ -144,9 +144,9 @@ We compare our implmentation compared to the original one in terms of recall@20 
 
 |data|recall@20|ndcg|
 |------|---|---|
-|book data|0.4034 ± (0.0160)|0.3140 ± (0.0059)|
-|music data|0.3777 ± (0.0164)|0.2947 ± (0.0113)|
-|movie data|0.1594 ± (0.0031)|0.1955 ± (0.0015)|
+|`bookdata`|0.4034 ± (0.0160)|0.3140 ± (0.0059)|
+|`musicdata`|0.3777 ± (0.0164)|0.2947 ± (0.0113)|
+|`moviedata` |0.1594 ± (0.0031)|0.1955 ± (0.0015)|
 
 ### Hyperparameter tuning
 
