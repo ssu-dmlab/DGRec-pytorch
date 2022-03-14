@@ -158,7 +158,7 @@ We compare our implmentation compared to the original one in terms of recall@20 
 The following tables summarize the experimental results to find better hyperparameters for each dataset.
 
 #### Results on `bookdata` (batch_size : 100)
-We first fixed `batch_size` to 100, and varied the size of embeddings as follows:
+We first fixed the batch size to 100, and varied the size of embeddings as follows:
 
 |Embedding size|recall@20|ndcg|
 |--------------|---------|----|
@@ -167,9 +167,9 @@ We first fixed `batch_size` to 100, and varied the size of embeddings as follows
 |30|0.3551 ± (0.0431)|0.2998 ± (0.0132)|
 
 The table shows that when the embedding size is 50, the model produces the best accuracy among the results. 
-Then, we fixed the embedding size to 50, and checked the effects of activation functions, drop-out, learning rate, and decay ratio as follows:
+Then, we fixed the embedding size to 50, and checked the effects of activation functions, drop-out, learning rate, and decay rate as follows:
 
-|Activation|Drop-out|Learning rate|Decay ratio|recall@20|ndcg|
+|Activation|Drop-out|Learning rate|Decay rate|recall@20|ndcg|
 |--------------|---------|----|----|----|----|
 |relu|0.2|0.002|0.99|0.3449 ± (0.0181)|0.3002 ± (0.0091)|
 |relu|0.2|0.002|0.99|0.2904 ± (0.0172)|0.2705 ± (0.0092)|
@@ -197,7 +197,7 @@ Then, we fixed the embedding size to 50, and checked the effects of activation f
 |elu|0.3|0.01|0.95|0.3705 ± (0.0266)|0.3073 ± (0.0079)|
 
 #### Results on `musicdata` (batch_size : 50)
-We first fixed `batch_size` to 100, and varied the size of embeddings as follows:
+We first fixed the batch size to 100, and varied the size of embeddings as follows:
 
 |Embedding size|recall@20|ndcg|
 |--------------|---------|----|
@@ -206,9 +206,9 @@ We first fixed `batch_size` to 100, and varied the size of embeddings as follows
 |30|0.3327 ± (0.0259)|0.2709 ± (0.010s9)|
 
 The table shows that when the embedding size is 100, the model produces the best accuracy among the results. 
-Then, we fixed the embedding size to 100, and checked the effects of activation functions, drop-out, learning rate, and decay ratio as follows:
+Then, we fixed the embedding size to 100, and checked the effects of activation functions, drop-out, learning rate, and decay rate as follows:
 
-|Activation|Drop-out|Learning rate|Decay ratio|recall@20|ndcg|
+|Activation|Drop-out|Learning rate|Decay rate|recall@20|ndcg|
 |--------------|---------|----|----|----|----|
 |relu|0.2|0.002|0.99|0.3310 ± (0.0229)|0.2772 ± (0.0074)|
 |relu|0.2|0.002|0.99|0.2990 ± (0.0257)|0.2597 ± (0.0082)|
