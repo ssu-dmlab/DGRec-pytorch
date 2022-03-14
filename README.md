@@ -2,7 +2,9 @@
 # DGRec-pytorch
 
 This repository implements **DGRec** proposed in "Session-Based Social Recommendation via Dynamic Graph Attention Network (WSDM 2019)" using PyTorch. 
-We refer to the original code [(link)](https://github.com/DeepGraphLearning/RecommenderSystems/tree/master/socialRec) which was implemented by Tensorflow.
+We refer to the original code [(link)](https://github.com/DeepGraphLearning/RecommenderSystems/tree/master/socialRec) which was implemented in Tensorflow.
+
+This repository is developed by Taesoo Kim, and commented by [Jinhong Jung](https://jinhongjung.github.io/).
 
 ## Getting Started
 
@@ -132,7 +134,7 @@ The statistics of `bookdata`, `musicdata`, and `moviedata` from the Douban domai
 
 We compare our implmentation compared to the original one in terms of recall@20 and ndcg. We report average metrics with thier standard deviations of 10 runs.
 
-* Original version based on Tensorflow
+### Recommendation accuracies on test sets using the original version in Tensorflow
 
 |data|recall@20|ndcg|
 |------|---|---|
@@ -140,7 +142,8 @@ We compare our implmentation compared to the original one in terms of recall@20 
 |`musicdata`|0.3382|0.2539|
 |`moviedata`|0.1861|0.1950|
 
-* Our version based on PyTorch
+
+### Recommendation accuracies on test sets using our version in Pytorch
 
 |data|recall@20|ndcg|
 |------|---|---|
@@ -148,21 +151,25 @@ We compare our implmentation compared to the original one in terms of recall@20 
 |`musicdata`|0.3777 ± (0.0164)|0.2947 ± (0.0113)|
 |`moviedata` |0.1594 ± (0.0031)|0.1955 ± (0.0015)|
 
+* Note that the above results were obatined with the early-stopping technqiue w.r.t. ndcg, i.e., if you change the base metric of the early-stopping to recall@20, the test recall of our version can be improved as similar as that of the original version. 
+
 ### Hyperparameter tuning
 
-The following table summarizes the results of finding better hyperparameters.
+The following tables summarize the experimental results to find better hyperparameters for each dataset.
 
-#### bookdata (batch_size : 100)
+#### Results on `bookdata` (batch_size : 100)
+We first fixed `batch_size` to 100, and varied the size of embeddings as follows:
 
-|embedding size|recall@20|ndcg|
+|Embedding size|recall@20|ndcg|
 |--------------|---------|----|
 |100|0.3673 ± (0.0261)|0.3035 ± (0.0130)|
 |50|0.3718 ± (0.0250)|0.3066 ± (0.0116)|
 |30|0.3551 ± (0.0431)|0.2998 ± (0.0132)|
 
-- embeddingsize: 50 
+The table shows that when the embedding size is 50, the model produces the best accuracy among the results. 
+Then, we fixed the embedding size to 50, and checked the effects of activation functions, drop-out, learning rate, and decay ratio as follows:
 
-|Act|Drop Out|Lr|Decay rate|recall@20|ndcg|
+|Activation|Drop-out|Learning rate|Decay ratio|recall@20|ndcg|
 |--------------|---------|----|----|----|----|
 |relu|0.2|0.002|0.99|0.3449 ± (0.0181)|0.3002 ± (0.0091)|
 |relu|0.2|0.002|0.99|0.2904 ± (0.0172)|0.2705 ± (0.0092)|
@@ -189,17 +196,19 @@ The following table summarizes the results of finding better hyperparameters.
 |elu|0.3|0.01|0.98|0.3901 ± (0.0262)|0.3116 ± (0.0050)|
 |elu|0.3|0.01|0.95|0.3705 ± (0.0266)|0.3073 ± (0.0079)|
 
-#### musicdata (batch_size : 50)
+#### Results on `musicdata` (batch_size : 50)
+We first fixed `batch_size` to 100, and varied the size of embeddings as follows:
 
-|embedding size|recall@20|ndcg|
+|Embedding size|recall@20|ndcg|
 |--------------|---------|----|
 |100|0.3529 ± (0.0295)|0.2962 ± (0.0103)|
 |50|0.3584 ± (0.0181)|0.2876 ± (0.0121)|
 |30|0.3327 ± (0.0259)|0.2709 ± (0.010s9)|
 
-- embeddingsize: 100 
+The table shows that when the embedding size is 100, the model produces the best accuracy among the results. 
+Then, we fixed the embedding size to 100, and checked the effects of activation functions, drop-out, learning rate, and decay ratio as follows:
 
-|Act|Drop Out|Lr|Decay rate|recall@20|ndcg|
+|Activation|Drop-out|Learning rate|Decay ratio|recall@20|ndcg|
 |--------------|---------|----|----|----|----|
 |relu|0.2|0.002|0.99|0.3310 ± (0.0229)|0.2772 ± (0.0074)|
 |relu|0.2|0.002|0.99|0.2990 ± (0.0257)|0.2597 ± (0.0082)|
@@ -226,11 +235,13 @@ The following table summarizes the results of finding better hyperparameters.
 |elu|0.3|0.01|0.98|0.3694 ± (0.0236)|0.2915 ± (0.0096)|
 |elu|0.3|0.01|0.95|0.3544 ± (0.0279)|0.2801 ± (0.0104)|
 
-#### moviedata (batch_size : 500)
+#### Results on `moviedata` (batch_size : 500)
+Since the dataset is the largest among tested data, we checked the effects of only embedding size and learning rate as follows (see other hyperparameters in [here](https://github.com/jbnu-dslab/DGRec-pytorch/blob/master/hyperparameter/musicdata/param.json)):
 
-|embedding size|learning rate|recall@20|ndcg|
+
+|Embedding size|Learning rate|recall@20|ndcg|
 |--------------|-------------|---------|----|
-|100|0.002|0.1594 ± (0.0031)|0.1955 ± (0.0015)|
+|**100**|**0.002**|**0.1594 ± (0.0031)**|**0.1955 ± (0.0015)**|
 |100|0.01|0.1574 ± (0.0039)|0.1912 ± (0.0024)|
 |50|0.002|0.1509 ± (0.0021)|0.1885 ± (0.0009)|
 |50|0.01|0.1586 ± (0.0033)|0.1901 ± (0.0023)|
