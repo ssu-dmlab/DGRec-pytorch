@@ -4,7 +4,7 @@
 This repository implements **DGRec** proposed in "Session-Based Social Recommendation via Dynamic Graph Attention Network (WSDM 2019)" using PyTorch. 
 We refer to the original code [(link)](https://github.com/DeepGraphLearning/RecommenderSystems/tree/master/socialRec) which was implemented in Tensorflow.
 
-This repository is developed by Taesoo Kim, and commented by [Jinhong Jung](https://jinhongjung.github.io/).
+This repository is developed by [Taesoo Kim](https://github.com/kimtaesu24), and commented by [Jinhong Jung](https://jinhongjung.github.io/).
 
 ## Getting Started
 
