@@ -236,7 +236,7 @@ Then, we fixed the embedding size to 100, and checked the effects of activation 
 |elu|0.3|0.01|0.95|0.3544 ± (0.0279)|0.2801 ± (0.0104)|
 
 #### Results on `moviedata` (batch_size : 500)
-Since the dataset is the largest among tested data, we checked the effects of only embedding size and learning rate as follows (see other hyperparameters in [here](https://github.com/jbnu-dslab/DGRec-pytorch/blob/master/hyperparameter/musicdata/param.json)):
+Since the dataset is the largest among tested data, we checked the effects of only embedding size and learning rate as follows (see other hyperparameters in [here](https://github.com/jbnu-dslab/DGRec-pytorch/blob/master/hyperparameter/moviedata/param.json)):
 
 
 |Embedding size|Learning rate|recall@20|ndcg|
